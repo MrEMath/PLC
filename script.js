@@ -323,44 +323,45 @@ function renderCategoryFields(category) {
 }
 itemSaveBtn.addEventListener("click", () => {
   const category = itemCategory.value;
+
   if (category === "Topic") {
-    const title = document.getElementById("fieldTitle").value;
-    const essentialUnderstanding = document.getElementById("fieldEU").value;
-    const objectives = document.getElementById("fieldObjectives").value
-      .split("\n").map(s => s.trim()).filter(Boolean);
-    const quiz = document.getElementById("fieldQuiz").value;
-    const ppt = document.getElementById("fieldPpt").value;
-    const notes = document.getElementById("fieldNotes").value;
-    const tasks = document.getElementById("fieldTasks").value
-      .split("\n").map(s => s.trim()).filter(Boolean);
-    const videos = document.getElementById("fieldVideos").value
-      .split("\n").map(line => {
-        const [label, url] = line.split("|").map(s => s.trim());
-        return label && url ? { label, url } : null;
-      }).filter(Boolean);
+    const title = document.getElementById("fieldTitle")?.value.trim() || "";
+    const essentialUnderstanding = document.getElementById("fieldEU")?.value.trim() || "";
+    const objectives = (document.getElementById("fieldObjectives")?.value || "")
+      .split("\n")
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (!title) {
+      alert("Please enter a title for the Topic.");
+      return;
+    }
 
     const newItem = {
       id: "item-" + Date.now(),
       date: currentEditingDate,
       course: "LMS 8th Grade Math",
-      category,
+      category: "Topic",
       title,
       essentialUnderstanding,
       objectives,
-      quiz,
-      powerpoint: ppt,
-      notes,
-      tasks,
-      videos
+      quiz: "",
+      powerpoint: "",
+      notes: "",
+      tasks: [],
+      videos: []
     };
 
     calendarItems.push(newItem);
     closeItemPopout();
     renderCalendar();
+    showDetails(newItem.id);
+  } else {
+    alert("Only Topic saving is implemented right now.");
   }
-});
-
-
+});    calendarItems.push(newItem);
+    closeItemPopout();
+    renderCalendar();
 // --- Resource popout (slides 7–9) ---
 const resourceModal = document.getElementById("resourceModal");
 const resourceLinkFields = document.getElementById("resourceLinkFields");
