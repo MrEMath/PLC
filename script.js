@@ -79,7 +79,7 @@ function initMonthYear() {
     yearSelect.appendChild(opt);
   }
 
-  monthSelect.value = "7";   // August
+  monthSelect.value = "7"; // August
   yearSelect.value = "2026";
 }
 
