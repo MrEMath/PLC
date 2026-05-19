@@ -37,8 +37,14 @@ const itemDateDisplay = document.getElementById("itemDateDisplay");
 const itemCategory = document.getElementById("itemCategory");
 const categoryFields = document.getElementById("categoryFields");
 const itemSaveBtn = document.getElementById("itemSaveBtn");
-const itemDeleteBtn = document.getElementById("itemDeleteBtn");
 const itemCancelBtn = document.getElementById("itemCancelBtn");
+const itemDeleteBtn = document.getElementById("itemDeleteBtn");
+
+const resourceModal = document.getElementById("resourceModal");
+const resourceLinkFields = document.getElementById("resourceLinkFields");
+const resourceFileFields = document.getElementById("resourceFileFields");
+const resourceSaveBtn = document.getElementById("resourceSaveBtn");
+const resourceCancelBtn = document.getElementById("resourceCancelBtn");
 
 const monthNames = [
   "January", "February", "March", "April", "May", "June",
@@ -47,6 +53,37 @@ const monthNames = [
 
 let currentEditingDate = null;
 let editingItemId = null;
+let currentResourceField = null;
+
+let pendingResources = {
+  quiz: "",
+  powerpoint: "",
+  notes: "",
+  tasks: [],
+  videos: []
+};
+
+function resetPendingResources() {
+  pendingResources = {
+    quiz: "",
+    powerpoint: "",
+    notes: "",
+    tasks: [],
+    videos: []
+  };
+}
+
+function clearDetails() {
+  detailTitle.textContent = "";
+  detailCourse.textContent = "";
+  detailEU.textContent = "";
+  detailObjectives.innerHTML = "";
+  detailQuiz.textContent = "";
+  detailPpt.textContent = "";
+  detailNotes.textContent = "";
+  detailTasks.innerHTML = "";
+  detailVideos.innerHTML = "";
+}
 
 function initMonthYear() {
   monthSelect.innerHTML = "";
@@ -127,15 +164,16 @@ function renderCalendar() {
           itemBtn.type = "button";
           itemBtn.className = "calendarItemBtn";
           itemBtn.textContent = item.title;
-         itemBtn.addEventListener("click", () => {
-  document.querySelectorAll(".calendarItemBtn").forEach(btn => {
-    btn.classList.remove("selected");
-  });
-  itemBtn.classList.add("selected");
-  showDetails(item.id);
-});
 
-itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+          itemBtn.addEventListener("click", () => {
+            document.querySelectorAll(".calendarItemBtn").forEach(btn => {
+              btn.classList.remove("selected");
+            });
+            itemBtn.classList.add("selected");
+            showDetails(item.id);
+          });
+
+          itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
           cell.appendChild(itemBtn);
         });
 
@@ -192,42 +230,18 @@ function showDetails(itemId) {
   });
 }
 
-function openItemPopout(dateStr) {
-  editingItemId = null;
-  currentEditingDate = dateStr;
-  itemDateDisplay.textContent = `Date: ${dateStr}`;
-  itemCategory.value = "Topic";
-  renderCategoryFields("Topic");
-  itemDeleteBtn.style.display = "none";
-  itemModal.classList.remove("hidden");
-}
+function refreshResourcePreviews() {
+  const quizPreview = document.getElementById("quizPreview");
+  const powerpointPreview = document.getElementById("powerpointPreview");
+  const notesPreview = document.getElementById("notesPreview");
+  const tasksPreview = document.getElementById("tasksPreview");
+  const videosPreview = document.getElementById("videosPreview");
 
-function openEditItemPopout(itemId) {
-  const item = calendarItems.find(it => it.id === itemId);
-  if (!item) return;
-
-  editingItemId = itemId;
-  currentEditingDate = item.date;
-  itemDateDisplay.textContent = `Date: ${item.date}`;
-  itemCategory.value = item.category || "Topic";
-  renderCategoryFields(item.category || "Topic");
-  itemDeleteBtn.style.display = "inline-block";
-  itemModal.classList.remove("hidden");
-
-  document.getElementById("fieldTitle").value = item.title || "";
-  document.getElementById("fieldEU").value = item.essentialUnderstanding || "";
-  document.getElementById("fieldObjectives").value = (item.objectives || []).join("\n");
-  document.getElementById("fieldQuiz").value = item.quiz || "";
-  document.getElementById("fieldPpt").value = item.powerpoint || "";
-  document.getElementById("fieldNotes").value = item.notes || "";
-  document.getElementById("fieldTasks").value = (item.tasks || []).join("\n");
-  document.getElementById("fieldVideos").value = (item.videos || [])
-    .map(video => typeof video === "string" ? video : (video.url || ""))
-    .join("\n");
-}
-
-function closeItemPopout() {
-  itemModal.classList.add("hidden");
+  if (quizPreview) quizPreview.textContent = pendingResources.quiz ? "Added" : "";
+  if (powerpointPreview) powerpointPreview.textContent = pendingResources.powerpoint ? "Added" : "";
+  if (notesPreview) notesPreview.textContent = pendingResources.notes ? "Added" : "";
+  if (tasksPreview) tasksPreview.textContent = pendingResources.tasks.length ? `${pendingResources.tasks.length} added` : "";
+  if (videosPreview) videosPreview.textContent = pendingResources.videos.length ? `${pendingResources.videos.length} added` : "";
 }
 
 function renderCategoryFields(category) {
@@ -245,50 +259,117 @@ function renderCategoryFields(category) {
         <textarea id="fieldObjectives" rows="4"></textarea>
       </label>
 
-      <label>Quiz:
-        <input type="text" id="fieldQuiz">
-      </label>
+      <div class="resource-row">
+        <span>Quiz:</span>
+        <span id="quizPreview"></span>
+        <button type="button" onclick="openResourcePopout('quiz')">+</button>
+      </div>
 
-      <label>PowerPoint:
-        <input type="text" id="fieldPpt">
-      </label>
+      <div class="resource-row">
+        <span>PowerPoint:</span>
+        <span id="powerpointPreview"></span>
+        <button type="button" onclick="openResourcePopout('powerpoint')">+</button>
+      </div>
 
-      <label>Notes:
-        <textarea id="fieldNotes" rows="4"></textarea>
-      </label>
+      <div class="resource-row">
+        <span>Notes:</span>
+        <span id="notesPreview"></span>
+        <button type="button" onclick="openResourcePopout('notes')">+</button>
+      </div>
 
-      <label>Tasks (one per line):
-        <textarea id="fieldTasks" rows="4"></textarea>
-      </label>
+      <div class="resource-row">
+        <span>Tasks:</span>
+        <span id="tasksPreview"></span>
+        <button type="button" onclick="openResourcePopout('tasks')">+</button>
+      </div>
 
-      <label>Videos (one URL per line):
-        <textarea id="fieldVideos" rows="4"></textarea>
-      </label>
+      <div class="resource-row">
+        <span>Videos:</span>
+        <span id="videosPreview"></span>
+        <button type="button" onclick="openResourcePopout('videos')">+</button>
+      </div>
     `;
+
+    refreshResourcePreviews();
   } else {
     categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
   }
 }
 
+function openItemPopout(dateStr) {
+  editingItemId = null;
+  currentEditingDate = dateStr;
+  resetPendingResources();
+  itemDateDisplay.textContent = `Date: ${dateStr}`;
+  itemCategory.value = "Topic";
+  renderCategoryFields("Topic");
+  if (itemDeleteBtn) itemDeleteBtn.style.display = "none";
+  itemModal.classList.remove("hidden");
+}
+
+function openEditItemPopout(itemId) {
+  const item = calendarItems.find(it => it.id === itemId);
+  if (!item) return;
+
+  editingItemId = itemId;
+  currentEditingDate = item.date;
+
+  pendingResources = {
+    quiz: item.quiz || "",
+    powerpoint: item.powerpoint || "",
+    notes: item.notes || "",
+    tasks: Array.isArray(item.tasks) ? [...item.tasks] : [],
+    videos: Array.isArray(item.videos)
+      ? item.videos.map(video => typeof video === "string" ? video : (video.url || ""))
+      : []
+  };
+
+  itemDateDisplay.textContent = `Date: ${item.date}`;
+  itemCategory.value = item.category || "Topic";
+  renderCategoryFields(item.category || "Topic");
+  if (itemDeleteBtn) itemDeleteBtn.style.display = "inline-block";
+  itemModal.classList.remove("hidden");
+
+  const titleEl = document.getElementById("fieldTitle");
+  const euEl = document.getElementById("fieldEU");
+  const objectivesEl = document.getElementById("fieldObjectives");
+
+  if (titleEl) titleEl.value = item.title || "";
+  if (euEl) euEl.value = item.essentialUnderstanding || "";
+  if (objectivesEl) objectivesEl.value = (item.objectives || []).join("\n");
+
+  refreshResourcePreviews();
+}
+
+function closeItemPopout() {
+  itemModal.classList.add("hidden");
+}
+
+function openResourcePopout(fieldName) {
+  currentResourceField = fieldName;
+  resourceModal.classList.remove("hidden");
+}
+
+function closeResourcePopout() {
+  resourceModal.classList.add("hidden");
+}
+
 itemSaveBtn.addEventListener("click", () => {
-  const title = document.getElementById("fieldTitle").value.trim();
-  const essentialUnderstanding = document.getElementById("fieldEU").value.trim();
-  const objectives = document.getElementById("fieldObjectives").value
-    .split("\n")
-    .map(s => s.trim())
-    .filter(Boolean);
-  const quiz = document.getElementById("fieldQuiz").value.trim();
-  const powerpoint = document.getElementById("fieldPpt").value.trim();
-  const notes = document.getElementById("fieldNotes").value.trim();
-  const tasks = document.getElementById("fieldTasks").value
-    .split("\n")
-    .map(s => s.trim())
-    .filter(Boolean);
-  const videos = document.getElementById("fieldVideos").value
-    .split("\n")
-    .map(s => s.trim())
-    .filter(Boolean)
-    .map(url => ({ label: url, url }));
+  const titleEl = document.getElementById("fieldTitle");
+  const euEl = document.getElementById("fieldEU");
+  const objectivesEl = document.getElementById("fieldObjectives");
+
+  const title = titleEl ? titleEl.value.trim() : "";
+  const essentialUnderstanding = euEl ? euEl.value.trim() : "";
+  const objectives = objectivesEl
+    ? objectivesEl.value.split("\n").map(s => s.trim()).filter(Boolean)
+    : [];
+
+  const quiz = pendingResources.quiz;
+  const powerpoint = pendingResources.powerpoint;
+  const notes = pendingResources.notes;
+  const tasks = pendingResources.tasks;
+  const videos = pendingResources.videos.map(v => ({ label: v, url: v }));
 
   if (!title) {
     alert("Please enter a title.");
@@ -337,31 +418,66 @@ itemSaveBtn.addEventListener("click", () => {
   showDetails(newItem.id);
 });
 
-itemDeleteBtn.addEventListener("click", () => {
-  if (!editingItemId) return;
+if (resourceSaveBtn) {
+  resourceSaveBtn.addEventListener("click", () => {
+    const selectedType = document.querySelector("input[name='resType']:checked");
+    const linkInput = document.getElementById("resourceLinkInput");
+    const fileInput = document.getElementById("resourceFileInput");
 
-  const confirmed = confirm("Delete this calendar item?");
-  if (!confirmed) return;
+    if (!selectedType) {
+      closeResourcePopout();
+      return;
+    }
 
-  const index = calendarItems.findIndex(item => item.id === editingItemId);
-  if (index !== -1) {
-    calendarItems.splice(index, 1);
-  }
+    const type = selectedType.value;
+    const linkValue = linkInput ? linkInput.value.trim() : "";
+    let value = "";
 
-  editingItemId = null;
-  closeItemPopout();
-  renderCalendar();
+    if (type === "link") {
+      value = linkValue;
+    } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
+      value = fileInput.files[0].name;
+    }
 
-  detailTitle.textContent = "";
-  detailCourse.textContent = "";
-  detailEU.textContent = "";
-  detailObjectives.innerHTML = "";
-  detailQuiz.textContent = "";
-  detailPpt.textContent = "";
-  detailNotes.textContent = "";
-  detailTasks.innerHTML = "";
-  detailVideos.innerHTML = "";
-});
+    if (!currentResourceField || !value) {
+      closeResourcePopout();
+      return;
+    }
+
+    if (currentResourceField === "tasks" || currentResourceField === "videos") {
+      pendingResources[currentResourceField].push(value);
+    } else {
+      pendingResources[currentResourceField] = value;
+    }
+
+    refreshResourcePreviews();
+    closeResourcePopout();
+  });
+}
+
+if (resourceCancelBtn) {
+  resourceCancelBtn.addEventListener("click", closeResourcePopout);
+}
+
+if (itemDeleteBtn) {
+  itemDeleteBtn.addEventListener("click", () => {
+    if (!editingItemId) return;
+
+    const confirmed = confirm("Delete this calendar item?");
+    if (!confirmed) return;
+
+    const index = calendarItems.findIndex(item => item.id === editingItemId);
+    if (index !== -1) {
+      calendarItems.splice(index, 1);
+    }
+
+    editingItemId = null;
+    closeItemPopout();
+    renderCalendar();
+    clearDetails();
+  });
+}
+
 itemCancelBtn.addEventListener("click", closeItemPopout);
 monthSelect.addEventListener("change", renderCalendar);
 yearSelect.addEventListener("change", renderCalendar);
