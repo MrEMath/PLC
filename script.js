@@ -126,8 +126,15 @@ function renderCalendar() {
           itemBtn.type = "button";
           itemBtn.className = "calendarItemBtn";
           itemBtn.textContent = item.title;
-          itemBtn.addEventListener("click", () => showDetails(item.id));
-          itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+         itemBtn.addEventListener("click", () => {
+  document.querySelectorAll(".calendarItemBtn").forEach(btn => {
+    btn.classList.remove("selected");
+  });
+  itemBtn.classList.add("selected");
+  showDetails(item.id);
+});
+
+itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
           cell.appendChild(itemBtn);
         });
 
@@ -223,22 +230,37 @@ function closeItemPopout() {
 function renderCategoryFields(category) {
   if (category === "Topic") {
     categoryFields.innerHTML = `
-      abel>Title:</label>
-      <input type="text" id="fieldTitle"><br>
-      abel>Essential Understanding:</label>
-      <textarea id="fieldEU" rows="3"></textarea><br>
-      abel>Objectives (one per line):</label>
-      <textarea id="fieldObjectives" rows="4"></textarea><br>
-      abel>Quiz:</label>
-      <input type="text" id="fieldQuiz"><br>
-      abel>PowerPoint:</label>
-      <input type="text" id="fieldPpt"><br>
-      abel>Notes:</label>
-      <textarea id="fieldNotes" rows="3"></textarea><br>
-      abel>Tasks (one per line):</label>
-      <textarea id="fieldTasks" rows="3"></textarea><br>
-      abel>Videos (one URL per line):</label>
-      <textarea id="fieldVideos" rows="3"></textarea><br>
+      <label>Title:
+        <input type="text" id="fieldTitle">
+      </label>
+
+      <label>Essential Understanding:
+        <textarea id="fieldEU" rows="3"></textarea>
+      </label>
+
+      <label>Objectives (one per line):
+        <textarea id="fieldObjectives" rows="4"></textarea>
+      </label>
+
+      <label>Quiz:
+        <input type="text" id="fieldQuiz">
+      </label>
+
+      <label>PowerPoint:
+        <input type="text" id="fieldPpt">
+      </label>
+
+      <label>Notes:
+        <textarea id="fieldNotes" rows="4"></textarea>
+      </label>
+
+      <label>Tasks (one per line):
+        <textarea id="fieldTasks" rows="4"></textarea>
+      </label>
+
+      <label>Videos (one URL per line):
+        <textarea id="fieldVideos" rows="4"></textarea>
+      </label>
     `;
   } else {
     categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
