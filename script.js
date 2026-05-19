@@ -268,6 +268,8 @@ function renderCategoryFields(category) {
   } else {
     categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
   }
+}
+
 itemSaveBtn.addEventListener("click", () => {
   const title = document.getElementById("fieldTitle").value.trim();
   const essentialUnderstanding = document.getElementById("fieldEU").value.trim();
@@ -292,6 +294,7 @@ itemSaveBtn.addEventListener("click", () => {
     alert("Please enter a title.");
     return;
   }
+
   if (editingItemId) {
     const item = calendarItems.find(it => it.id === editingItemId);
     if (item) {
@@ -305,6 +308,7 @@ itemSaveBtn.addEventListener("click", () => {
       item.videos = videos;
       item.date = currentEditingDate;
     }
+
     closeItemPopout();
     renderCalendar();
     showDetails(editingItemId);
@@ -326,12 +330,38 @@ itemSaveBtn.addEventListener("click", () => {
     tasks,
     videos
   };
+
   calendarItems.push(newItem);
   closeItemPopout();
   renderCalendar();
   showDetails(newItem.id);
 });
 
+itemDeleteBtn.addEventListener("click", () => {
+  if (!editingItemId) return;
+
+  const confirmed = confirm("Delete this calendar item?");
+  if (!confirmed) return;
+
+  const index = calendarItems.findIndex(item => item.id === editingItemId);
+  if (index !== -1) {
+    calendarItems.splice(index, 1);
+  }
+
+  editingItemId = null;
+  closeItemPopout();
+  renderCalendar();
+
+  detailTitle.textContent = "";
+  detailCourse.textContent = "";
+  detailEU.textContent = "";
+  detailObjectives.innerHTML = "";
+  detailQuiz.textContent = "";
+  detailPpt.textContent = "";
+  detailNotes.textContent = "";
+  detailTasks.innerHTML = "";
+  detailVideos.innerHTML = "";
+});
 itemCancelBtn.addEventListener("click", closeItemPopout);
 monthSelect.addEventListener("change", renderCalendar);
 yearSelect.addEventListener("change", renderCalendar);
