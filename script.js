@@ -169,7 +169,7 @@ function showDetails(itemId) {
   const item = calendarItems.find(it => it.id === itemId);
   if (!item) return;
 
-  detailTitle.textContent = item.title || "";
+  detailTitle.textContent = `${item.category || "Topic"}: ${item.title || ""}`;
   detailCourse.textContent = item.course || "";
   detailEU.textContent = item.essentialUnderstanding || "";
 
@@ -194,6 +194,7 @@ function showDetails(itemId) {
   detailVideos.innerHTML = "";
   (item.videos || []).forEach(video => {
     const li = document.createElement("li");
+
     if (typeof video === "string") {
       li.textContent = video;
     } else {
@@ -204,6 +205,7 @@ function showDetails(itemId) {
       a.textContent = video.label || "Video";
       li.appendChild(a);
     }
+
     detailVideos.appendChild(li);
   });
 }
@@ -232,10 +234,24 @@ function openEditItemPopout(itemId) {
   const titleEl = document.getElementById("fieldTitle");
   const euEl = document.getElementById("fieldEU");
   const objectivesEl = document.getElementById("fieldObjectives");
+  const quizEl = document.getElementById("fieldQuiz");
+  const pptEl = document.getElementById("fieldPpt");
+  const notesEl = document.getElementById("fieldNotes");
+  const tasksEl = document.getElementById("fieldTasks");
+  const videosEl = document.getElementById("fieldVideos");
 
   if (titleEl) titleEl.value = item.title || "";
   if (euEl) euEl.value = item.essentialUnderstanding || "";
   if (objectivesEl) objectivesEl.value = (item.objectives || []).join("\n");
+  if (quizEl) quizEl.value = item.quiz || "";
+  if (pptEl) pptEl.value = item.powerpoint || "";
+  if (notesEl) notesEl.value = item.notes || "";
+  if (tasksEl) tasksEl.value = (item.tasks || []).join("\n");
+  if (videosEl) {
+    videosEl.value = (item.videos || [])
+      .map(video => typeof video === "string" ? video : (video.url || ""))
+      .join("\n");
+  }
 }
 
 function closeItemPopout() {
@@ -257,30 +273,25 @@ function renderCategoryFields(category) {
         <textarea id="fieldObjectives" placeholder="One per line"></textarea>
       </label>
 
-      <div class="field-row">
-        <span>Quiz</span>
-        <button type="button" onclick="openResourcePopout('quiz')">+</button>
-      </div>
+      <label>Quiz:
+        <input type="text" id="fieldQuiz" placeholder="Quiz link or title">
+      </label>
 
-      <div class="field-row">
-        <span>PowerPoint</span>
-        <button type="button" onclick="openResourcePopout('ppt')">+</button>
-      </div>
+      <label>PowerPoint:
+        <input type="text" id="fieldPpt" placeholder="PowerPoint link or title">
+      </label>
 
-      <div class="field-row">
-        <span>Notes</span>
-        <button type="button" onclick="openResourcePopout('notes')">+</button>
-      </div>
+      <label>Notes:
+        <textarea id="fieldNotes"></textarea>
+      </label>
 
-      <div class="field-row">
-        <span>Tasks</span>
-        <button type="button" onclick="openResourcePopout('tasks')">+</button>
-      </div>
+      <label>Tasks:
+        <textarea id="fieldTasks" placeholder="One task per line"></textarea>
+      </label>
 
-      <div class="field-row">
-        <span>Videos</span>
-        <button type="button" onclick="openResourcePopout('videos')">+</button>
-      </div>
+      <label>Videos:
+        <textarea id="fieldVideos" placeholder="One video URL per line"></textarea>
+      </label>
     `;
   } else {
     categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
@@ -318,11 +329,29 @@ itemSaveBtn.addEventListener("click", () => {
   const titleEl = document.getElementById("fieldTitle");
   const euEl = document.getElementById("fieldEU");
   const objectivesEl = document.getElementById("fieldObjectives");
+  const quizEl = document.getElementById("fieldQuiz");
+  const pptEl = document.getElementById("fieldPpt");
+  const notesEl = document.getElementById("fieldNotes");
+  const tasksEl = document.getElementById("fieldTasks");
+  const videosEl = document.getElementById("fieldVideos");
 
   const title = titleEl ? titleEl.value.trim() : "";
   const essentialUnderstanding = euEl ? euEl.value.trim() : "";
   const objectives = objectivesEl
     ? objectivesEl.value.split("\n").map(s => s.trim()).filter(Boolean)
+    : [];
+  const quiz = quizEl ? quizEl.value.trim() : "";
+  const powerpoint = pptEl ? pptEl.value.trim() : "";
+  const notes = notesEl ? notesEl.value.trim() : "";
+  const tasks = tasksEl
+    ? tasksEl.value.split("\n").map(s => s.trim()).filter(Boolean)
+    : [];
+  const videos = videosEl
+    ? videosEl.value
+        .split("\n")
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(url => ({ label: url, url }))
     : [];
 
   if (!title) {
@@ -333,9 +362,15 @@ itemSaveBtn.addEventListener("click", () => {
   if (editingItemId) {
     const existingItem = calendarItems.find(it => it.id === editingItemId);
     if (existingItem) {
+      existingItem.category = category;
       existingItem.title = title;
       existingItem.essentialUnderstanding = essentialUnderstanding;
       existingItem.objectives = objectives;
+      existingItem.quiz = quiz;
+      existingItem.powerpoint = powerpoint;
+      existingItem.notes = notes;
+      existingItem.tasks = tasks;
+      existingItem.videos = videos;
       existingItem.date = currentEditingDate;
     }
 
@@ -350,15 +385,15 @@ itemSaveBtn.addEventListener("click", () => {
     id: "item-" + Date.now(),
     date: currentEditingDate,
     course: "LMS 8th Grade Math",
-    category: "Topic",
+    category,
     title,
     essentialUnderstanding,
     objectives,
-    quiz: "",
-    powerpoint: "",
-    notes: "",
-    tasks: [],
-    videos: []
+    quiz,
+    powerpoint,
+    notes,
+    tasks,
+    videos
   };
 
   calendarItems.push(newItem);
