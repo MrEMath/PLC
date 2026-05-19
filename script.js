@@ -297,7 +297,6 @@ function renderCategoryFields(category) {
     categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
   }
 }
-
 // --- Resource modal ---
 function openResourcePopout(fieldName) {
   currentResourceField = fieldName;
