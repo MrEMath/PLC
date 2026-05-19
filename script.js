@@ -266,7 +266,6 @@ function renderCategoryFields(category) {
     categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
   }
 }
-
 itemSaveBtn.addEventListener("click", () => {
   const title = document.getElementById("fieldTitle").value.trim();
   const essentialUnderstanding = document.getElementById("fieldEU").value.trim();
