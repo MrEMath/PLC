@@ -1,8 +1,8 @@
-// --- Data model: start with 1 sample item like your Topic 1-1 slide ---
+// --- Data model ---
 const calendarItems = [
   {
     id: "item-1",
-    date: "2025-08-03",
+    date: "2026-08-03",
     course: "LMS 8th Grade Math",
     category: "Topic",
     title: "Topic 1-1 Rational Numbers",
@@ -21,16 +21,46 @@ const calendarItems = [
   }
 ];
 
-// --- Month/year and calendar grid ---
+// --- Calendar elements ---
 const monthSelect = document.getElementById("monthSelect");
 const yearSelect = document.getElementById("yearSelect");
 const calendarGrid = document.getElementById("calendarGrid");
+
+// --- Detail elements ---
+const detailTitle = document.getElementById("detailTitle");
+const detailCourse = document.getElementById("detailCourse");
+const detailEU = document.getElementById("detailEU");
+const detailObjectives = document.getElementById("detailObjectives");
+const detailQuiz = document.getElementById("detailQuiz");
+const detailPpt = document.getElementById("detailPpt");
+const detailNotes = document.getElementById("detailNotes");
+const detailTasks = document.getElementById("detailTasks");
+const detailVideos = document.getElementById("detailVideos");
+
+// --- Modal elements ---
+const itemModal = document.getElementById("itemModal");
+const itemDateDisplay = document.getElementById("itemDateDisplay");
+const itemCategory = document.getElementById("itemCategory");
+const categoryFields = document.getElementById("categoryFields");
+const itemSaveBtn = document.getElementById("itemSaveBtn");
+const itemCancelBtn = document.getElementById("itemCancelBtn");
+
+const resourceModal = document.getElementById("resourceModal");
+const resourceLinkFields = document.getElementById("resourceLinkFields");
+const resourceFileFields = document.getElementById("resourceFileFields");
+const resourceSaveBtn = document.getElementById("resourceSaveBtn");
+const resourceCancelBtn = document.getElementById("resourceCancelBtn");
 
 const monthNames = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
 
+let currentEditingDate = null;
+let editingItemId = null;
+let currentResourceField = null;
+
+// --- Init ---
 function initMonthYear() {
   monthSelect.innerHTML = "";
   yearSelect.innerHTML = "";
@@ -42,9 +72,7 @@ function initMonthYear() {
     monthSelect.appendChild(opt);
   });
 
-  const startYear = 2024;
-  const endYear = 2030;
-  for (let y = startYear; y <= endYear; y++) {
+  for (let y = 2024; y <= 2030; y++) {
     const opt = document.createElement("option");
     opt.value = y;
     opt.textContent = y;
@@ -55,6 +83,7 @@ function initMonthYear() {
   yearSelect.value = "2026";
 }
 
+// --- Calendar render ---
 function renderCalendar() {
   const month = parseInt(monthSelect.value, 10);
   const year = parseInt(yearSelect.value, 10);
@@ -75,12 +104,10 @@ function renderCalendar() {
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // Find the first Monday shown in the school-week grid
   let firstVisibleDate = 1;
   while (firstVisibleDate <= daysInMonth) {
-    const testDate = new Date(year, month, firstVisibleDate);
-    const jsDay = testDate.getDay(); // Sun=0 ... Sat=6
-    if (jsDay >= 1 && jsDay <= 5) break; // Mon-Fri
+    const d = new Date(year, month, firstVisibleDate).getDay();
+    if (d >= 1 && d <= 5) break;
     firstVisibleDate++;
   }
 
@@ -94,76 +121,40 @@ function renderCalendar() {
       const cell = document.createElement("div");
       cell.className = "calendar-cell";
 
+      while (currentDate <= daysInMonth) {
+        const jsDay = new Date(year, month, currentDate).getDay();
+        if (jsDay >= 1 && jsDay <= 5) break;
+        currentDate++;
+      }
+
       if (currentDate <= daysInMonth) {
-        const actualDate = new Date(year, month, currentDate);
-        const jsDay = actualDate.getDay(); // Sun=0 ... Sat=6
+        const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(currentDate).padStart(2, "0")}`;
 
-        if (jsDay >= 1 && jsDay <= 5) {
-          const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(currentDate).padStart(2, "0")}`;
+        const dayLabel = document.createElement("div");
+        dayLabel.className = "day-label";
+        dayLabel.textContent = currentDate;
 
-          const dayLabel = document.createElement("div");
-          dayLabel.className = "day-label";
-          dayLabel.textContent = currentDate;
+        const plusBtn = document.createElement("button");
+        plusBtn.type = "button";
+        plusBtn.textContent = "+";
+        plusBtn.className = "addItemBtn";
+        plusBtn.addEventListener("click", () => openItemPopout(dateStr));
 
-          const plusBtn = document.createElement("button");
-          plusBtn.type = "button";
-          plusBtn.textContent = "+";
-          plusBtn.className = "addItemBtn";
-          plusBtn.addEventListener("click", () => openItemPopout(dateStr));
+        cell.appendChild(dayLabel);
+        cell.appendChild(plusBtn);
 
-          cell.appendChild(dayLabel);
-          cell.appendChild(plusBtn);
+        const itemsForDay = calendarItems.filter(item => item.date === dateStr);
+        itemsForDay.forEach(item => {
+          const itemBtn = document.createElement("button");
+          itemBtn.type = "button";
+          itemBtn.textContent = item.title;
+          itemBtn.className = "calendarItemBtn";
+          itemBtn.addEventListener("click", () => showDetails(item.id));
+          itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+          cell.appendChild(itemBtn);
+        });
 
-          const itemsForDay = calendarItems.filter(item => item.date === dateStr);
-          itemsForDay.forEach(item => {
-            const itemBtn = document.createElement("button");
-            itemBtn.type = "button";
-            itemBtn.textContent = item.title;
-            itemBtn.className = "calendarItemBtn";
-            itemBtn.addEventListener("click", () => showDetails(item.id));
-            itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
-            cell.appendChild(itemBtn);
-          });
-
-          currentDate++;
-        } else {
-          while (currentDate <= daysInMonth) {
-            const skipDate = new Date(year, month, currentDate);
-            const skipDay = skipDate.getDay();
-            if (skipDay >= 1 && skipDay <= 5) break;
-            currentDate++;
-          }
-
-          if (currentDate <= daysInMonth) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(currentDate).padStart(2, "0")}`;
-
-            const dayLabel = document.createElement("div");
-            dayLabel.className = "day-label";
-            dayLabel.textContent = currentDate;
-
-            const plusBtn = document.createElement("button");
-            plusBtn.type = "button";
-            plusBtn.textContent = "+";
-            plusBtn.className = "addItemBtn";
-            plusBtn.addEventListener("click", () => openItemPopout(dateStr));
-
-            cell.appendChild(dayLabel);
-            cell.appendChild(plusBtn);
-
-            const itemsForDay = calendarItems.filter(item => item.date === dateStr);
-            itemsForDay.forEach(item => {
-              const itemBtn = document.createElement("button");
-              itemBtn.type = "button";
-              itemBtn.textContent = item.title;
-              itemBtn.className = "calendarItemBtn";
-              itemBtn.addEventListener("click", () => showDetails(item.id));
-              itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
-              cell.appendChild(itemBtn);
-            });
-
-            currentDate++;
-          }
-        }
+        currentDate++;
       }
 
       row.appendChild(cell);
@@ -172,40 +163,35 @@ function renderCalendar() {
     calendarGrid.appendChild(row);
   }
 }
-monthSelect.addEventListener("change", renderCalendar);
-yearSelect.addEventListener("change", renderCalendar);
 
 // --- Details panel ---
 function showDetails(itemId) {
   const item = calendarItems.find(it => it.id === itemId);
   if (!item) return;
 
-  document.getElementById("detailTitle").textContent = item.title || "";
-  document.getElementById("detailCourse").textContent = item.course || "";
-  document.getElementById("detailEU").textContent = item.essentialUnderstanding || "";
+  detailTitle.textContent = item.title || "";
+  detailCourse.textContent = item.course || "";
+  detailEU.textContent = item.essentialUnderstanding || "";
 
-  const objUl = document.getElementById("detailObjectives");
-  objUl.innerHTML = "";
+  detailObjectives.innerHTML = "";
   (item.objectives || []).forEach(objective => {
     const li = document.createElement("li");
     li.textContent = objective;
-    objUl.appendChild(li);
+    detailObjectives.appendChild(li);
   });
 
-  document.getElementById("detailQuiz").textContent = item.quiz || "";
-  document.getElementById("detailPpt").textContent = item.powerpoint || "";
-  document.getElementById("detailNotes").textContent = item.notes || "";
+  detailQuiz.textContent = item.quiz || "";
+  detailPpt.textContent = item.powerpoint || "";
+  detailNotes.textContent = item.notes || "";
 
-  const tasksUl = document.getElementById("detailTasks");
-  tasksUl.innerHTML = "";
+  detailTasks.innerHTML = "";
   (item.tasks || []).forEach(task => {
     const li = document.createElement("li");
     li.textContent = task;
-    tasksUl.appendChild(li);
+    detailTasks.appendChild(li);
   });
 
-  const videosUl = document.getElementById("detailVideos");
-  videosUl.innerHTML = "";
+  detailVideos.innerHTML = "";
   (item.videos || []).forEach(video => {
     const li = document.createElement("li");
     if (typeof video === "string") {
@@ -215,22 +201,14 @@ function showDetails(itemId) {
       a.href = video.url || "#";
       a.target = "_blank";
       a.rel = "noopener noreferrer";
-      a.textContent = video.label || video.url || "Video";
+      a.textContent = video.label || "Video";
       li.appendChild(a);
     }
-    videosUl.appendChild(li);
+    detailVideos.appendChild(li);
   });
 }
-// --- Item popout ---
-const itemModal = document.getElementById("itemModal");
-const itemDateDisplay = document.getElementById("itemDateDisplay");
-const itemCategory = document.getElementById("itemCategory");
-const categoryFields = document.getElementById("categoryFields");
-const itemSaveBtn = document.getElementById("itemSaveBtn");
-const itemCancelBtn = document.getElementById("itemCancelBtn");
 
-let currentEditingDate = null;
-let editingItemId = null;
+// --- Item modal ---
 function openItemPopout(dateStr) {
   editingItemId = null;
   currentEditingDate = dateStr;
@@ -239,6 +217,7 @@ function openItemPopout(dateStr) {
   renderCategoryFields("Topic");
   itemModal.classList.remove("hidden");
 }
+
 function openEditItemPopout(itemId) {
   const item = calendarItems.find(it => it.id === itemId);
   if (!item) return;
@@ -258,15 +237,10 @@ function openEditItemPopout(itemId) {
   if (euEl) euEl.value = item.essentialUnderstanding || "";
   if (objectivesEl) objectivesEl.value = (item.objectives || []).join("\n");
 }
+
 function closeItemPopout() {
   itemModal.classList.add("hidden");
 }
-
-itemCancelBtn.addEventListener("click", closeItemPopout);
-
-itemCategory.addEventListener("change", () => {
-  renderCategoryFields(itemCategory.value);
-});
 
 function renderCategoryFields(category) {
   if (category === "Topic") {
@@ -313,6 +287,26 @@ function renderCategoryFields(category) {
   }
 }
 
+// --- Resource modal ---
+function openResourcePopout(fieldName) {
+  currentResourceField = fieldName;
+  resourceModal.classList.remove("hidden");
+}
+
+function closeResourcePopout() {
+  resourceModal.classList.add("hidden");
+}
+
+// --- Events ---
+monthSelect.addEventListener("change", renderCalendar);
+yearSelect.addEventListener("change", renderCalendar);
+
+itemCancelBtn.addEventListener("click", closeItemPopout);
+
+itemCategory.addEventListener("change", () => {
+  renderCategoryFields(itemCategory.value);
+});
+
 itemSaveBtn.addEventListener("click", () => {
   const category = itemCategory.value;
 
@@ -344,6 +338,7 @@ itemSaveBtn.addEventListener("click", () => {
       existingItem.objectives = objectives;
       existingItem.date = currentEditingDate;
     }
+
     closeItemPopout();
     renderCalendar();
     showDetails(editingItemId);
@@ -371,23 +366,6 @@ itemSaveBtn.addEventListener("click", () => {
   renderCalendar();
   showDetails(newItem.id);
 });
-// --- Resource popout ---
-const resourceModal = document.getElementById("resourceModal");
-const resourceLinkFields = document.getElementById("resourceLinkFields");
-const resourceFileFields = document.getElementById("resourceFileFields");
-const resourceSaveBtn = document.getElementById("resourceSaveBtn");
-const resourceCancelBtn = document.getElementById("resourceCancelBtn");
-
-let currentResourceField = null;
-
-function openResourcePopout(fieldName) {
-  currentResourceField = fieldName;
-  resourceModal.classList.remove("hidden");
-}
-
-function closeResourcePopout() {
-  resourceModal.classList.add("hidden");
-}
 
 resourceCancelBtn.addEventListener("click", closeResourcePopout);
 
@@ -408,6 +386,6 @@ resourceSaveBtn.addEventListener("click", () => {
   closeResourcePopout();
 });
 
-// --- Kick everything off ---
+// --- Start ---
 initMonthYear();
 renderCalendar();
