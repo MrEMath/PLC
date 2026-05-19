@@ -325,15 +325,18 @@ itemSaveBtn.addEventListener("click", () => {
   const category = itemCategory.value;
 
   if (category === "Topic") {
-    const title = document.getElementById("fieldTitle")?.value.trim() || "";
-    const essentialUnderstanding = document.getElementById("fieldEU")?.value.trim() || "";
-    const objectives = (document.getElementById("fieldObjectives")?.value || "")
-      .split("\n")
-      .map(s => s.trim())
-      .filter(Boolean);
+    const titleEl = document.getElementById("fieldTitle");
+    const euEl = document.getElementById("fieldEU");
+    const objectivesEl = document.getElementById("fieldObjectives");
+
+    const title = titleEl ? titleEl.value.trim() : "";
+    const essentialUnderstanding = euEl ? euEl.value.trim() : "";
+    const objectives = objectivesEl
+      ? objectivesEl.value.split("\n").map(s => s.trim()).filter(Boolean)
+      : [];
 
     if (!title) {
-      alert("Please enter a title for the Topic.");
+      alert("Please enter a title.");
       return;
     }
 
@@ -357,7 +360,7 @@ itemSaveBtn.addEventListener("click", () => {
     renderCalendar();
     showDetails(newItem.id);
   } else {
-    alert("Only Topic saving is implemented right now.");
+    alert("Only Topic is set up right now.");
   }
 });    calendarItems.push(newItem);
     closeItemPopout();
