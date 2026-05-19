@@ -292,31 +292,6 @@ itemSaveBtn.addEventListener("click", () => {
     alert("Please enter a title.");
     return;
   }
-itemDeleteBtn.addEventListener("click", () => {
-  if (!editingItemId) return;
-
-  const confirmed = confirm("Delete this calendar item?");
-  if (!confirmed) return;
-
-  const index = calendarItems.findIndex(item => item.id === editingItemId);
-  if (index !== -1) {
-    calendarItems.splice(index, 1);
-  }
-
-  editingItemId = null;
-  closeItemPopout();
-  renderCalendar();
-
-  detailTitle.textContent = "";
-  detailCourse.textContent = "";
-  detailEU.textContent = "";
-  detailObjectives.innerHTML = "";
-  detailQuiz.textContent = "";
-  detailPpt.textContent = "";
-  detailNotes.textContent = "";
-  detailTasks.innerHTML = "";
-  detailVideos.innerHTML = "";
-});
   if (editingItemId) {
     const item = calendarItems.find(it => it.id === editingItemId);
     if (item) {
@@ -351,7 +326,31 @@ itemDeleteBtn.addEventListener("click", () => {
     tasks,
     videos
   };
+itemDeleteBtn.addEventListener("click", () => {
+  if (!editingItemId) return;
 
+  const confirmed = confirm("Delete this calendar item?");
+  if (!confirmed) return;
+
+  const index = calendarItems.findIndex(item => item.id === editingItemId);
+  if (index !== -1) {
+    calendarItems.splice(index, 1);
+  }
+
+  editingItemId = null;
+  closeItemPopout();
+  renderCalendar();
+
+  detailTitle.textContent = "";
+  detailCourse.textContent = "";
+  detailEU.textContent = "";
+  detailObjectives.innerHTML = "";
+  detailQuiz.textContent = "";
+  detailPpt.textContent = "";
+  detailNotes.textContent = "";
+  detailTasks.innerHTML = "";
+  detailVideos.innerHTML = "";
+});
   calendarItems.push(newItem);
   closeItemPopout();
   renderCalendar();
