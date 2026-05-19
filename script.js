@@ -223,37 +223,22 @@ function closeItemPopout() {
 function renderCategoryFields(category) {
   if (category === "Topic") {
     categoryFields.innerHTML = `
-      <label>Title:
-        <input type="text" id="fieldTitle">
-      </label>
-
-      <label>Essential Understanding:
-        <textarea id="fieldEU"></textarea>
-      </label>
-
-      <label>Objectives:
-        <textarea id="fieldObjectives" placeholder="One per line"></textarea>
-      </label>
-
-      <label>Quiz:
-        <input type="text" id="fieldQuiz">
-      </label>
-
-      <label>PowerPoint:
-        <input type="text" id="fieldPpt">
-      </label>
-
-      <label>Notes:
-        <textarea id="fieldNotes"></textarea>
-      </label>
-
-      <label>Tasks:
-        <textarea id="fieldTasks" placeholder="One per line"></textarea>
-      </label>
-
-      <label>Videos:
-        <textarea id="fieldVideos" placeholder="One URL per line"></textarea>
-      </label>
+      abel>Title:</label>
+      <input type="text" id="fieldTitle"><br>
+      abel>Essential Understanding:</label>
+      <textarea id="fieldEU" rows="3"></textarea><br>
+      abel>Objectives (one per line):</label>
+      <textarea id="fieldObjectives" rows="4"></textarea><br>
+      abel>Quiz:</label>
+      <input type="text" id="fieldQuiz"><br>
+      abel>PowerPoint:</label>
+      <input type="text" id="fieldPpt"><br>
+      abel>Notes:</label>
+      <textarea id="fieldNotes" rows="3"></textarea><br>
+      abel>Tasks (one per line):</label>
+      <textarea id="fieldTasks" rows="3"></textarea><br>
+      abel>Videos (one URL per line):</label>
+      <textarea id="fieldVideos" rows="3"></textarea><br>
     `;
   } else {
     categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
