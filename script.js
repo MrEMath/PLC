@@ -58,6 +58,7 @@ function renderCalendar() {
 
   calendarGrid.innerHTML = "";
 
+  // Header row Mon–Fri
   const headerRow = document.createElement("div");
   headerRow.className = "calendar-row header-row";
 
@@ -71,8 +72,15 @@ function renderCalendar() {
   calendarGrid.appendChild(headerRow);
 
   const firstOfMonth = new Date(year, month, 1);
-  const weekdayOfFirst = (firstOfMonth.getDay() + 6) % 7;
+  let weekdayOfFirst = (firstOfMonth.getDay() + 6) % 7; // Mon=0 ... Sun=6
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // For Mon–Fri grid, if month starts on Sat/Sun, begin with Monday
+  if (weekdayOfFirst >= 5) {
+    weekdayOfFirst = 0;
+  }
+
+  let day = 1;
 
   for (let week = 0; week < 6; week++) {
     const row = document.createElement("div");
@@ -82,23 +90,19 @@ function renderCalendar() {
       const cell = document.createElement("div");
       cell.className = "calendar-cell";
 
-      const dayIndex = week * 7 + weekday;
-      if (dayIndex < weekdayOfFirst) {
-        row.appendChild(cell);
-        continue;
-      }
-
-      const dateNumber = dayIndex - weekdayOfFirst + 1;
-
-      if (dateNumber >= 1 && dateNumber <= daysInMonth) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dateNumber).padStart(2, "0")}`;
+      if (week === 0 && weekday < weekdayOfFirst) {
+        // leave empty cell before first weekday of month
+      } else if (day <= daysInMonth) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
         const dayLabel = document.createElement("div");
-        dayLabel.textContent = dateNumber;
+        dayLabel.className = "day-label";
+        dayLabel.textContent = day;
 
         const plusBtn = document.createElement("button");
         plusBtn.textContent = "+";
         plusBtn.className = "addItemBtn";
+        plusBtn.type = "button";
         plusBtn.addEventListener("click", () => openItemPopout(dateStr));
 
         cell.appendChild(dayLabel);
@@ -109,9 +113,12 @@ function renderCalendar() {
           const itemBtn = document.createElement("button");
           itemBtn.textContent = it.title;
           itemBtn.className = "calendarItemBtn";
+          itemBtn.type = "button";
           itemBtn.addEventListener("click", () => showDetails(it.id));
           cell.appendChild(itemBtn);
         });
+
+        day++;
       }
 
       row.appendChild(cell);
@@ -120,7 +127,6 @@ function renderCalendar() {
     calendarGrid.appendChild(row);
   }
 }
-
 monthSelect.addEventListener("change", renderCalendar);
 yearSelect.addEventListener("change", renderCalendar);
 
