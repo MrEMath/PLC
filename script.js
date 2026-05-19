@@ -37,6 +37,7 @@ const itemDateDisplay = document.getElementById("itemDateDisplay");
 const itemCategory = document.getElementById("itemCategory");
 const categoryFields = document.getElementById("categoryFields");
 const itemSaveBtn = document.getElementById("itemSaveBtn");
+const itemDeleteBtn = document.getElementById("itemDeleteBtn");
 const itemCancelBtn = document.getElementById("itemCancelBtn");
 
 const monthNames = [
@@ -197,6 +198,7 @@ function openItemPopout(dateStr) {
   itemDateDisplay.textContent = `Date: ${dateStr}`;
   itemCategory.value = "Topic";
   renderCategoryFields("Topic");
+  itemDeleteBtn.style.display = "none";
   itemModal.classList.remove("hidden");
 }
 
@@ -209,6 +211,7 @@ function openEditItemPopout(itemId) {
   itemDateDisplay.textContent = `Date: ${item.date}`;
   itemCategory.value = item.category || "Topic";
   renderCategoryFields(item.category || "Topic");
+  itemDeleteBtn.style.display = "inline-block";
   itemModal.classList.remove("hidden");
 
   document.getElementById("fieldTitle").value = item.title || "";
@@ -289,7 +292,31 @@ itemSaveBtn.addEventListener("click", () => {
     alert("Please enter a title.");
     return;
   }
+itemDeleteBtn.addEventListener("click", () => {
+  if (!editingItemId) return;
 
+  const confirmed = confirm("Delete this calendar item?");
+  if (!confirmed) return;
+
+  const index = calendarItems.findIndex(item => item.id === editingItemId);
+  if (index !== -1) {
+    calendarItems.splice(index, 1);
+  }
+
+  editingItemId = null;
+  closeItemPopout();
+  renderCalendar();
+
+  detailTitle.textContent = "";
+  detailCourse.textContent = "";
+  detailEU.textContent = "";
+  detailObjectives.innerHTML = "";
+  detailQuiz.textContent = "";
+  detailPpt.textContent = "";
+  detailNotes.textContent = "";
+  detailTasks.innerHTML = "";
+  detailVideos.innerHTML = "";
+});
   if (editingItemId) {
     const item = calendarItems.find(it => it.id === editingItemId);
     if (item) {
