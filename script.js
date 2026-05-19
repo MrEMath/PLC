@@ -27,11 +27,14 @@ const yearSelect = document.getElementById("yearSelect");
 const calendarGrid = document.getElementById("calendarGrid");
 
 const monthNames = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December"
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
 ];
 
 function initMonthYear() {
+  monthSelect.innerHTML = "";
+  yearSelect.innerHTML = "";
+
   monthNames.forEach((name, index) => {
     const opt = document.createElement("option");
     opt.value = index;
@@ -48,8 +51,8 @@ function initMonthYear() {
     yearSelect.appendChild(opt);
   }
 
-  monthSelect.value = 7;
-  yearSelect.value = 2026;
+  monthSelect.value = "7";   // August
+  yearSelect.value = "2026";
 }
 
 function renderCalendar() {
@@ -58,15 +61,15 @@ function renderCalendar() {
 
   calendarGrid.innerHTML = "";
 
-  // Header row Mon–Fri
+  // Header row
   const headerRow = document.createElement("div");
   headerRow.className = "calendar-row header-row";
 
-  ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].forEach(d => {
-    const cell = document.createElement("div");
-    cell.className = "calendar-cell header-cell";
-    cell.textContent = d;
-    headerRow.appendChild(cell);
+  ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].forEach(dayName => {
+    const headerCell = document.createElement("div");
+    headerCell.className = "calendar-cell header-cell";
+    headerCell.textContent = dayName;
+    headerRow.appendChild(headerCell);
   });
 
   calendarGrid.appendChild(headerRow);
@@ -75,7 +78,7 @@ function renderCalendar() {
   let weekdayOfFirst = (firstOfMonth.getDay() + 6) % 7; // Mon=0 ... Sun=6
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // For Mon–Fri grid, if month starts on Sat/Sun, begin with Monday
+  // If month starts on Sat/Sun, start visible grid on Monday
   if (weekdayOfFirst >= 5) {
     weekdayOfFirst = 0;
   }
@@ -91,7 +94,7 @@ function renderCalendar() {
       cell.className = "calendar-cell";
 
       if (week === 0 && weekday < weekdayOfFirst) {
-        // leave empty cell before first weekday of month
+        // Blank cells before first visible school day
       } else if (day <= daysInMonth) {
         const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
@@ -100,21 +103,21 @@ function renderCalendar() {
         dayLabel.textContent = day;
 
         const plusBtn = document.createElement("button");
+        plusBtn.type = "button";
         plusBtn.textContent = "+";
         plusBtn.className = "addItemBtn";
-        plusBtn.type = "button";
         plusBtn.addEventListener("click", () => openItemPopout(dateStr));
 
         cell.appendChild(dayLabel);
         cell.appendChild(plusBtn);
 
-        const itemsForDay = calendarItems.filter(it => it.date === dateStr);
-        itemsForDay.forEach(it => {
+        const itemsForDay = calendarItems.filter(item => item.date === dateStr);
+        itemsForDay.forEach(item => {
           const itemBtn = document.createElement("button");
-          itemBtn.textContent = it.title;
-          itemBtn.className = "calendarItemBtn";
           itemBtn.type = "button";
-          itemBtn.addEventListener("click", () => showDetails(it.id));
+          itemBtn.textContent = item.title;
+          itemBtn.className = "calendarItemBtn";
+          itemBtn.addEventListener("click", () => showDetails(item.id));
           cell.appendChild(itemBtn);
         });
 
@@ -127,6 +130,7 @@ function renderCalendar() {
     calendarGrid.appendChild(row);
   }
 }
+
 monthSelect.addEventListener("change", renderCalendar);
 yearSelect.addEventListener("change", renderCalendar);
 
@@ -141,9 +145,9 @@ function showDetails(itemId) {
 
   const objUl = document.getElementById("detailObjectives");
   objUl.innerHTML = "";
-  (item.objectives || []).forEach(o => {
+  (item.objectives || []).forEach(objective => {
     const li = document.createElement("li");
-    li.textContent = o;
+    li.textContent = objective;
     objUl.appendChild(li);
   });
 
@@ -153,27 +157,27 @@ function showDetails(itemId) {
 
   const tasksUl = document.getElementById("detailTasks");
   tasksUl.innerHTML = "";
-  (item.tasks || []).forEach(t => {
+  (item.tasks || []).forEach(task => {
     const li = document.createElement("li");
-    li.textContent = t;
+    li.textContent = task;
     tasksUl.appendChild(li);
   });
 
-  const vidUl = document.getElementById("detailVideos");
-  vidUl.innerHTML = "";
-  (item.videos || []).forEach(v => {
+  const videosUl = document.getElementById("detailVideos");
+  videosUl.innerHTML = "";
+  (item.videos || []).forEach(video => {
     const li = document.createElement("li");
     const a = document.createElement("a");
-    a.href = v.url;
+    a.href = video.url;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
-    a.textContent = v.label || v.url;
+    a.textContent = video.label || video.url;
     li.appendChild(a);
-    vidUl.appendChild(li);
+    videosUl.appendChild(li);
   });
 }
 
-// --- Item popout (slides 2–6) ---
+// --- Item popout ---
 const itemModal = document.getElementById("itemModal");
 const itemDateDisplay = document.getElementById("itemDateDisplay");
 const itemCategory = document.getElementById("itemCategory");
@@ -249,47 +253,48 @@ function renderCategoryFields(category) {
 itemSaveBtn.addEventListener("click", () => {
   const category = itemCategory.value;
 
-  if (category === "Topic") {
-    const titleEl = document.getElementById("fieldTitle");
-    const euEl = document.getElementById("fieldEU");
-    const objectivesEl = document.getElementById("fieldObjectives");
-
-    const title = titleEl ? titleEl.value.trim() : "";
-    const essentialUnderstanding = euEl ? euEl.value.trim() : "";
-    const objectives = objectivesEl
-      ? objectivesEl.value.split("\n").map(s => s.trim()).filter(Boolean)
-      : [];
-
-    if (!title) {
-      alert("Please enter a title.");
-      return;
-    }
-
-    const newItem = {
-      id: "item-" + Date.now(),
-      date: currentEditingDate,
-      course: "LMS 8th Grade Math",
-      category: "Topic",
-      title,
-      essentialUnderstanding,
-      objectives,
-      quiz: "",
-      powerpoint: "",
-      notes: "",
-      tasks: [],
-      videos: []
-    };
-
-    calendarItems.push(newItem);
-    closeItemPopout();
-    renderCalendar();
-    showDetails(newItem.id);
-  } else {
+  if (category !== "Topic") {
     alert("Only Topic is set up right now.");
+    return;
   }
+
+  const titleEl = document.getElementById("fieldTitle");
+  const euEl = document.getElementById("fieldEU");
+  const objectivesEl = document.getElementById("fieldObjectives");
+
+  const title = titleEl ? titleEl.value.trim() : "";
+  const essentialUnderstanding = euEl ? euEl.value.trim() : "";
+  const objectives = objectivesEl
+    ? objectivesEl.value.split("\n").map(s => s.trim()).filter(Boolean)
+    : [];
+
+  if (!title) {
+    alert("Please enter a title.");
+    return;
+  }
+
+  const newItem = {
+    id: "item-" + Date.now(),
+    date: currentEditingDate,
+    course: "LMS 8th Grade Math",
+    category: "Topic",
+    title,
+    essentialUnderstanding,
+    objectives,
+    quiz: "",
+    powerpoint: "",
+    notes: "",
+    tasks: [],
+    videos: []
+  };
+
+  calendarItems.push(newItem);
+  closeItemPopout();
+  renderCalendar();
+  showDetails(newItem.id);
 });
 
-// --- Resource popout (slides 7–9) ---
+// --- Resource popout ---
 const resourceModal = document.getElementById("resourceModal");
 const resourceLinkFields = document.getElementById("resourceLinkFields");
 const resourceFileFields = document.getElementById("resourceFileFields");
