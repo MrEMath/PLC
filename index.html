@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Curriculum Calendar</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="calendar-header">
+  <div class="calendar-controls">
+    <select id="monthSelect"></select>
+    <select id="yearSelect"></select>
+  </div>
+ <div class="header-spacer"></div>
+  <div class="calendar-brand">
+    <img src="images/LMSHawks.png" alt="LMS" class="calendar-logo">
+    <img src="images/LMS8thMath.png" alt="8th Math" class="calendar-logo-secondary">
+  </div>
+</header>  <main class="calendar-layout">
+    <section class="calendar-grid" id="calendarGrid"></section>
+
+    <aside class="details-panel" id="detailsPanel">
+      <p><strong>Topic:</strong> <span id="detailCourse"></span></p>
+      <p><strong>Essential Understanding:</strong> <span id="detailEU"></span></p>
+      <p><strong>Objectives:</strong></p>
+      <ul id="detailObjectives"></ul>
+      <p><strong>Quiz:</strong> <span id="detailQuiz"></span></p>
+      <p><strong>PowerPoint:</strong> <span id="detailPpt"></span></p>
+      <p><strong>Notes:</strong> <span id="detailNotes"></span></p>
+      <p><strong>Tasks:</strong></p>
+      <ul id="detailTasks"></ul>
+      <p><strong>Videos:</strong></p>
+      <ul id="detailVideos"></ul>
+    </aside>
+  </main>
+
+  <!-- Popout for adding a calendar item (slides 2–6) -->
+  <div id="itemModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Add Calendar Item</h2>
+      <p id="itemDateDisplay"></p>
+
+      <label>Category:
+        <select id="itemCategory">
+          <option value="Topic">Topic</option>
+          <option value="Quiz">Quiz</option>
+          <option value="Mastery">Hawk Mastery</option>
+          <option value="Benchmark">Benchmark</option>
+        </select>
+      </label>
+
+      <div id="categoryFields"></div>
+
+      <div class="modal-actions">
+        <button id="itemSaveBtn">Save</button>
+        <button type="button" id="itemCancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popout for link vs attachment (slides 7–9) -->
+  <div id="resourceModal" class="modal small hidden">
+    <div class="modal-content">
+      <h3>Add Resource</h3>
+
+      <div class="resource-type">
+        <label>
+          <input type="radio" name="resType" value="link" checked>
+          Link
+        </label>
+        <label>
+          <input type="radio" name="resType" value="file">
+          Attachment
+        </label>
+      </div>
+
+      <div id="resourceLinkFields">
+        <label>URL:
+          <input type="url" id="resUrl">
+        </label>
+        <label>Alternate Text:
+          <input type="text" id="resAlt">
+        </label>
+      </div>
+
+      <div id="resourceFileFields" class="hidden">
+        <label>Select File:
+          <input type="file" id="resFile">
+        </label>
+        <label>Alternate Text:
+          <input type="text" id="resFileAlt">
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button id="resourceSaveBtn">Save</button>
+        <button type="button" id="resourceCancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

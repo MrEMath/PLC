@@ -1,0 +1,181 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+
+.calendar-header {
+  display: flex;
+  height: 75px;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  background: #000000;
+  color: white;
+}
+.calendar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.header-spacer {
+  flex: .35;              /* takes up all the space between controls and logo */
+}
+.calendar-logo {
+  height: 128px;      /* adjust 24–40px as needed */
+  width: auto;
+  transform: translateY(-2px);
+}
+.calendar-logo-secondary {
+    height: 128px;
+    width: auto;
+    transform: translateY(20px);
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transform: translateY(40px);
+}
+
+.calendar-controls select {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+}.calendar-header select {
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  width: 140px;
+}
+#monthSelect {
+  width: 140px;
+}
+
+#yearSelect {
+  width: 70px;
+}
+.calendar-layout {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr;
+  gap: 1rem;
+  padding: 1rem;
+  height: calc(100vh - 60px);
+  box-sizing: border-box;
+}
+
+.calendar-grid {
+  border: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.calendar-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  flex: 1;                     /* week rows stretch to fill height */
+}
+
+/* Header row: shorter and not stretched by flex */
+.header-row {
+  flex: 0 0 auto;
+}
+
+/* Header cells: minimal padding so row stays short */
+.header-cell {
+  padding: 0;
+  font-size: 0.8rem;
+  line-height: 1.1;
+  font-weight: bold;
+  text-align: center;
+  background: #f0f0f0;
+}
+
+/* Regular cells */
+.calendar-cell {
+  border: 1px solid #eee;
+  padding: 4px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  position: relative;      /* NEW: anchor for .addItemBtn */
+}.calendar-cell button {
+  font-size: 0.7rem;
+}
+
+.addItemBtn {
+  position: absolute;          /* take it out of normal flow */
+  top: 4px;                    /* distance from top edge */
+  right: 4px;                  /* distance from right edge */
+  font-size: 0.7rem;
+  padding: 0 4px;
+}
+.calendarItemBtn {
+  background: #cfe8ff;
+  border: 1px solid #7aa7e0;
+  border-radius: 4px;
+  padding: 2px 4px;
+  text-align: left;
+}
+/* Details panel */
+.details-panel {
+  border: 1px solid #ccc;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+
+/* Modals */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal.small .modal-content {
+  max-width: 400px;
+}
+
+.modal-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+label {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+input[type="text"],
+input[type="url"],
+textarea,
+select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+textarea {
+  min-height: 60px;
+  resize: vertical;
+}
