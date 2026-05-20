@@ -106,22 +106,6 @@ function initMonthYear() {
   monthSelect.value = "7";
   yearSelect.value = "2026";
 }
-
-function renderCalendar() {
-  const month = parseInt(monthSelect.value, 10);
-  const year = parseInt(yearSelect.value, 10);
-
-  calendarGrid.innerHTML = "";
-
-  const headerRow = document.createElement("div");
-  headerRow.className = "calendar-row header-row";
-
-  ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].forEach(dayName => {
-    const headerCell = document.createElement("div");
-    headerCell.className = "calendar-cell header-cell";
-    headerCell.textContent = dayName;
-    headerRow.appendChild(headerCell);
-  });
 async function saveCalendarItem(item) {
   const payload = {
     id: item.id,
@@ -175,6 +159,22 @@ async function loadCalendarItems() {
 
   renderCalendar();
 }
+function renderCalendar() {
+  const month = parseInt(monthSelect.value, 10);
+  const year = parseInt(yearSelect.value, 10);
+
+  calendarGrid.innerHTML = "";
+
+  const headerRow = document.createElement("div");
+  headerRow.className = "calendar-row header-row";
+
+  ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].forEach(dayName => {
+    const headerCell = document.createElement("div");
+    headerCell.className = "calendar-cell header-cell";
+    headerCell.textContent = dayName;
+    headerRow.appendChild(headerCell);
+  });
+
   calendarGrid.appendChild(headerRow);
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -429,9 +429,9 @@ function openEditItemPopout(itemId) {
   currentEditingDate = item.date;
 
   pendingResources = {
-    quiz: item.quiz || "",
-    powerpoint: item.powerpoint || "",
-    notes: item.notes || "",
+    quiz: item.quiz || null,
+powerpoint: item.powerpoint || null,
+notes: item.notes || null,
     tasks: Array.isArray(item.tasks) ? [...item.tasks] : [],
     videos: Array.isArray(item.videos)
       ? item.videos.map(video => typeof video === "string" ? video : (video.url || ""))
