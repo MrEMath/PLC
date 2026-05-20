@@ -379,34 +379,36 @@ async function showDetails(itemId) {
   for (const fileObj of items) {
     const wrapper = document.createElement("div");
 
-    if (fileObj.type === "link" && fileObj.url)
-    {
+    if (fileObj.type === "link" && fileObj.url) {
       const a = document.createElement("a");
-const text = fileObj.altText
-  ? `${fileObj.name || "Resource"} — ${fileObj.altText}`
-  : (fileObj.name || fileObj.url);
+      const text = fileObj.altText?.trim()
+        ? fileObj.altText
+        : (fileObj.name || fileObj.url || "Open link");
 
-a.textContent = text;
-a.href = fileObj.url;
-a.target = "_blank";
-a.rel = "noopener noreferrer";
-wrapper.appendChild(a);
+      a.textContent = text;
+      a.href = fileObj.url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      wrapper.appendChild(a);
+
     } else if (fileObj.path) {
       const a = document.createElement("a");
-const text = fileObj.altText
-  ? `${fileObj.name || "Resource"} — ${fileObj.altText}`
-  : (fileObj.name || "Open file");
+      const text = fileObj.altText?.trim()
+        ? fileObj.altText
+        : (fileObj.name || "Open file");
 
-a.textContent = text;
-a.target = "_blank";
-a.rel = "noopener noreferrer";
-a.href = "#";
+      a.textContent = text;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.href = "#";
 
       try {
         const signedUrl = await getSignedFileUrl(fileObj.path);
         a.href = signedUrl;
       } catch (err) {
-        a.textContent = `${fileObj.name || "File"} (unavailable)`;
+        a.textContent = fileObj.altText?.trim()
+          ? `${fileObj.altText} (unavailable)`
+          : `${fileObj.name || "File"} (unavailable)`;
       }
 
       wrapper.appendChild(a);
