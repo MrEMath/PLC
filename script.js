@@ -392,10 +392,14 @@ a.rel = "noopener noreferrer";
 wrapper.appendChild(a);
     } else if (fileObj.path) {
       const a = document.createElement("a");
-      a.textContent = fileObj.name || "Open file";
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.href = "#";
+const text = fileObj.altText
+  ? `${fileObj.name || "Resource"} — ${fileObj.altText}`
+  : (fileObj.name || "Open file");
+
+a.textContent = text;
+a.target = "_blank";
+a.rel = "noopener noreferrer";
+a.href = "#";
 
       try {
         const signedUrl = await getSignedFileUrl(fileObj.path);
