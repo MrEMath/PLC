@@ -45,8 +45,8 @@ let pendingResources = {
   quiz: null,
   powerpoint: null,
   notes: null,
-  tasks: [],
-  videos: []
+  task: null,
+  videos: null
 };
 
 function resetPendingResources() {
@@ -54,8 +54,8 @@ function resetPendingResources() {
     quiz: null,
     powerpoint: null,
     notes: null,
-    tasks: [],
-    videos: []
+    task: null,
+    videos: null
   };
 }
 function toggleResourceInput(type) {
@@ -78,12 +78,43 @@ function clearDetails() {
   detailCourse.textContent = "";
   detailEU.textContent = "";
   detailObjectives.innerHTML = "";
+if (item.objectives) {
+  const lines = item.objectives.split("\n").filter(Boolean);
+  lines.forEach(objective => {
+    const li = document.createElement("li");
+    li.textContent = objective;
+    detailObjectives.appendChild(li);
+  });
+}
  detailQuiz.innerHTML = "";
 detailPpt.innerHTML = "";
 detailNotes.innerHTML = "";
   detailTasks.innerHTML = "";
   detailVideos.innerHTML = "";
+async function renderFileLink(container, fileObj) {
+  if (!fileObj || !fileObj.path) return;
+
+  const a = document.createElement("a");
+  a.textContent = fileObj.name || "Open file";
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.href = "#";
+
+  try {
+    const signedUrl = await getSignedFileUrl(fileObj.path);
+    a.href = signedUrl;
+  } catch (err) {
+    a.textContent = `${fileObj.name || "File"} (unavailable)`;
+  }
+
+  container.appendChild(a);
 }
+
+await renderFileLink(detailQuiz, item.quiz);
+await renderFileLink(detailPpt, item.powerpoint);
+await renderFileLink(detailNotes, item.notes);
+await renderFileLink(detailTasks, item.task);
+await renderFileLink(detailVideos, item.videos);
 
 function initMonthYear() {
   monthSelect.innerHTML = "";
@@ -237,12 +268,13 @@ function renderCalendar() {
   }
 }
 async function uploadResourceFile(file, fieldName) {
-  const folderMap = {
-    quiz: "quizzes",
-    powerpoint: "powerpoints",
-    notes: "notes",
-    tasks: "tasks"
-  };
+ const folderMap = {
+  quiz: "quizzes",
+  powerpoint: "powerpoints",
+  notes: "notes",
+  task: "tasks",
+  videos: "videos"
+};
 
   const folder = folderMap[fieldName] || "misc";
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
@@ -359,49 +391,51 @@ function refreshResourcePreviews() {
 function renderCategoryFields(category) {
   if (category === "Topic") {
     categoryFields.innerHTML = `
-      <label>Title:
+      <label>
+        Title:
         <input type="text" id="fieldTitle">
       </label>
 
-      <label>Essential Understanding:
+      <label>
+        Essential Understanding:
         <textarea id="fieldEU" rows="3"></textarea>
       </label>
 
-      <label>Objectives (one per line):
+      <label>
+        Objectives (one per line):
         <textarea id="fieldObjectives" rows="4"></textarea>
       </label>
 
-      <div class="resource-row">
+      <div class="resourceRow">
         <span>Quiz:</span>
-        <span id="quizPreview"></span>
         <button type="button" onclick="openResourcePopout('quiz')">+</button>
+        <span id="quizPreview"></span>
       </div>
 
-      <div class="resource-row">
+      <div class="resourceRow">
         <span>PowerPoint:</span>
-        <span id="powerpointPreview"></span>
         <button type="button" onclick="openResourcePopout('powerpoint')">+</button>
+        <span id="powerpointPreview"></span>
       </div>
 
-      <div class="resource-row">
+      <div class="resourceRow">
         <span>Notes:</span>
-        <span id="notesPreview"></span>
         <button type="button" onclick="openResourcePopout('notes')">+</button>
+        <span id="notesPreview"></span>
       </div>
 
-      <div class="resource-row">
-        <span>Tasks:</span>
-        <span id="tasksPreview"></span>
-        <button type="button" onclick="openResourcePopout('tasks')">+</button>
+      <div class="resourceRow">
+        <span>Task:</span>
+        <button type="button" onclick="openResourcePopout('task')">+</button>
+        <span id="taskPreview"></span>
       </div>
 
-      <div class="resource-row">
+      <div class="resourceRow">
         <span>Videos:</span>
-        <span id="videosPreview"></span>
         <button type="button" onclick="openResourcePopout('videos')">+</button>
+        <span id="videosPreview"></span>
       </div>
     `;
-
     refreshResourcePreviews();
   } else {
     categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
@@ -448,7 +482,7 @@ notes: item.notes || null,
 
   if (titleEl) titleEl.value = item.title || "";
   if (euEl) euEl.value = item.essentialUnderstanding || "";
-  if (objectivesEl) objectivesEl.value = (item.objectives || []).join("\n");
+if (objectivesEl) objectivesEl.value = item.objectives || "";
 
   refreshResourcePreviews();
 }
@@ -482,26 +516,21 @@ function closeResourcePopout() {
 itemSaveBtn.addEventListener("click", async () => {
   const category = itemCategory.value;
   const title = document.getElementById("fieldTitle")?.value.trim() || "";
-  const course = document.getElementById("fieldCourse")?.value.trim() || "";
   const essentialUnderstanding = document.getElementById("fieldEU")?.value.trim() || "";
-  const objectives = (document.getElementById("fieldObjectives")?.value || "")
-    .split("\n")
-    .map(line => line.trim())
-    .filter(Boolean);
+  const objectives = document.getElementById("fieldObjectives")?.value.trim() || "";
 
   const item = {
     id: editingItemId || crypto.randomUUID(),
     date: currentEditingDate,
     category,
     title,
-    course,
     essentialUnderstanding,
     objectives,
     quiz: pendingResources.quiz || null,
     powerpoint: pendingResources.powerpoint || null,
     notes: pendingResources.notes || null,
-    tasks: pendingResources.tasks || [],
-    videos: pendingResources.videos || []
+    task: pendingResources.task || null,
+    videos: pendingResources.videos || null
   };
 
   const existingIndex = calendarItems.findIndex(x => x.id === item.id);
