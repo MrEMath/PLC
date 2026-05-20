@@ -134,11 +134,11 @@ async function loadCalendarItems() {
     title: row.title || "",
     essentialUnderstanding: row.essential_understanding || "",
     objectives: row.objectives || "",
-    quiz: row.quiz || null,
-    powerpoint: row.powerpoint || null,
-    notes: row.notes || null,
-    task: row.task || null,
-    videos: row.videos || null
+      quiz: Array.isArray(row.quiz) ? row.quiz : [],
+  powerpoint: Array.isArray(row.powerpoint) ? row.powerpoint : [],
+  notes: Array.isArray(row.notes) ? row.notes : [],
+  task: Array.isArray(row.task) ? row.task : [],
+  videos: Array.isArray(row.videos) ? row.videos : []
   }));
 
   renderCalendar();
@@ -153,7 +153,7 @@ async function deleteCalendarItem(itemId) {
   if (error) throw error;
 }
 
-async function uploadResourceFile(file, fieldName) {
+async function uploadResourceFiles(files, fieldName) {
   const folderMap = {
     quiz: "quizzes",
     powerpoint: "powerpoints",
@@ -163,26 +163,32 @@ async function uploadResourceFile(file, fieldName) {
   };
 
   const folder = folderMap[fieldName] || "misc";
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-  const filePath = `${folder}/${Date.now()}-${safeName}`;
+  const uploaded = [];
 
-  const { data, error } = await supabaseClient
-    .storage
-    .from(STORAGE_BUCKET)
-    .upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type
+  for (const file of files) {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+    const filePath = `${folder}/${Date.now()}-${safeName}`;
+
+    const { data, error } = await supabaseClient
+      .storage
+      .from(STORAGE_BUCKET)
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type
+      });
+
+    if (error) throw error;
+
+    uploaded.push({
+      name: file.name,
+      path: data.path,
+      type: file.type,
+      size: file.size
     });
+  }
 
-  if (error) throw error;
-
-  return {
-    name: file.name,
-    path: data.path,
-    type: file.type,
-    size: file.size
-  };
+  return uploaded;
 }
 
 async function getSignedFileUrl(path) {
@@ -217,11 +223,11 @@ function refreshResourcePreviews() {
   const taskPreview = document.getElementById("taskPreview");
   const videosPreview = document.getElementById("videosPreview");
 
-  if (quizPreview) quizPreview.textContent = pendingResources.quiz ? "Added" : "";
-  if (powerpointPreview) powerpointPreview.textContent = pendingResources.powerpoint ? "Added" : "";
-  if (notesPreview) notesPreview.textContent = pendingResources.notes ? "Added" : "";
-  if (taskPreview) taskPreview.textContent = pendingResources.task ? "Added" : "";
-  if (videosPreview) videosPreview.textContent = pendingResources.videos ? "Added" : "";
+  if (quizPreview) quizPreview.textContent = pendingResources.quiz.length ? `${pendingResources.quiz.length} added` : "";
+  if (powerpointPreview) powerpointPreview.textContent = pendingResources.powerpoint.length ? `${pendingResources.powerpoint.length} added` : "";
+  if (notesPreview) notesPreview.textContent = pendingResources.notes.length ? `${pendingResources.notes.length} added` : "";
+  if (taskPreview) taskPreview.textContent = pendingResources.task.length ? `${pendingResources.task.length} added` : "";
+  if (videosPreview) videosPreview.textContent = pendingResources.videos.length ? `${pendingResources.videos.length} added` : "";
 }
 
 function renderCategoryFields(category) {
@@ -296,13 +302,12 @@ function openEditItemPopout(itemId) {
   editingItemId = itemId;
   currentEditingDate = item.date;
   pendingResources = {
-    quiz: item.quiz || null,
-    powerpoint: item.powerpoint || null,
-    notes: item.notes || null,
-    task: item.task || null,
-    videos: item.videos || null
-  };
-
+  quiz: Array.isArray(item.quiz) ? [...item.quiz] : [],
+  powerpoint: Array.isArray(item.powerpoint) ? [...item.powerpoint] : [],
+  notes: Array.isArray(item.notes) ? [...item.notes] : [],
+  task: Array.isArray(item.task) ? [...item.task] : [],
+  videos: Array.isArray(item.videos) ? [...item.videos] : []
+};
   itemDateDisplay.textContent = `Date: ${item.date}`;
   itemCategory.value = item.category || "Topic";
   renderCategoryFields(item.category || "Topic");
@@ -365,30 +370,45 @@ async function showDetails(itemId) {
     });
   }
 
-  async function renderFileLink(container, fileObj) {
-    if (!fileObj || !fileObj.path) return;
+  async function renderFileLinks(container, items) {
+  if (!container || !Array.isArray(items) || !items.length) return;
 
-    const a = document.createElement("a");
-    a.textContent = fileObj.name || "Open file";
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.href = "#";
+  for (const fileObj of items) {
+    const wrapper = document.createElement("div");
 
-    try {
-      const signedUrl = await getSignedFileUrl(fileObj.path);
-      a.href = signedUrl;
-    } catch (err) {
-      a.textContent = `${fileObj.name || "File"} (unavailable)`;
+    if (fileObj.type === "link" && fileObj.url) {
+      const a = document.createElement("a");
+      a.textContent = fileObj.name || fileObj.url;
+      a.href = fileObj.url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      wrapper.appendChild(a);
+    } else if (fileObj.path) {
+      const a = document.createElement("a");
+      a.textContent = fileObj.name || "Open file";
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.href = "#";
+
+      try {
+        const signedUrl = await getSignedFileUrl(fileObj.path);
+        a.href = signedUrl;
+      } catch (err) {
+        a.textContent = `${fileObj.name || "File"} (unavailable)`;
+      }
+
+      wrapper.appendChild(a);
     }
 
-    container.appendChild(a);
+    container.appendChild(wrapper);
   }
+}
 
-  await renderFileLink(detailQuiz, item.quiz);
-  await renderFileLink(detailPpt, item.powerpoint);
-  await renderFileLink(detailNotes, item.notes);
-  await renderFileLink(detailTasks, item.task);
-  await renderFileLink(detailVideos, item.videos);
+await renderFileLinks(detailQuiz, item.quiz);
+await renderFileLinks(detailPpt, item.powerpoint);
+await renderFileLinks(detailNotes, item.notes);
+await renderFileLinks(detailTasks, item.task);
+await renderFileLinks(detailVideos, item.videos);
 }
 
 function renderCalendar() {
@@ -511,45 +531,44 @@ if (resourceSaveBtn) {
     const linkInput = document.getElementById("resourceLinkInput");
     const fileInput = document.getElementById("resourceFileInput");
 
-    if (!selectedType) {
+    if (!selectedType || !currentResourceField) {
       closeResourcePopout();
       return;
     }
 
     const type = selectedType.value;
     const linkValue = linkInput ? linkInput.value.trim() : "";
-    let value = null;
 
     try {
       if (type === "link") {
-        value = linkValue
-          ? {
-              name: linkValue,
-              path: null,
-              type: "link",
-              url: linkValue
-            }
-          : null;
+        if (!linkValue) {
+          closeResourcePopout();
+          return;
+        }
+
+        pendingResources[currentResourceField].push({
+          name: linkValue,
+          path: null,
+          type: "link",
+          url: linkValue
+        });
       } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
-        value = await uploadResourceFile(fileInput.files[0], currentResourceField);
+        const uploadedFiles = await uploadResourceFiles(fileInput.files, currentResourceField);
+        pendingResources[currentResourceField].push(...uploadedFiles);
       }
-    } catch (err) {
-      alert("File upload failed: " + err.message);
-      return;
-    }
 
-    if (!currentResourceField || !value) {
+      refreshResourcePreviews();
+
+      if (linkInput) linkInput.value = "";
+      if (fileInput) fileInput.value = "";
+
+      const selectedFileName = document.getElementById("selectedFileName");
+      if (selectedFileName) selectedFileName.textContent = "";
+
       closeResourcePopout();
-      return;
+    } catch (err) {
+      alert("Resource upload failed: " + err.message);
     }
-
-    pendingResources[currentResourceField] = value;
-    refreshResourcePreviews();
-
-    if (linkInput) linkInput.value = "";
-    if (fileInput) fileInput.value = "";
-
-    closeResourcePopout();
   });
 }
 
