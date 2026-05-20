@@ -41,20 +41,20 @@ let editingItemId = null;
 let currentResourceField = null;
 
 let pendingResources = {
-  quiz: null,
-  powerpoint: null,
-  notes: null,
-  task: null,
-  videos: null
+  quiz: [],
+  powerpoint: [],
+  notes: [],
+  task: [],
+  videos: []
 };
 
 function resetPendingResources() {
   pendingResources = {
-    quiz: null,
-    powerpoint: null,
-    notes: null,
-    task: null,
-    videos: null
+    quiz: [],
+    powerpoint: [],
+    notes: [],
+    task: [],
+    videos: []
   };
 }
 
