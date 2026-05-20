@@ -574,6 +574,15 @@ if (itemDeleteBtn) {
 itemCancelBtn.addEventListener("click", closeItemPopout);
 monthSelect.addEventListener("change", renderCalendar);
 yearSelect.addEventListener("change", renderCalendar);
-
+document.addEventListener("change", (e) => {
+  if (e.target && e.target.id === "resourceFileInput") {
+    const selectedFileName = document.getElementById("selectedFileName");
+    if (selectedFileName) {
+      selectedFileName.textContent = e.target.files.length
+        ? e.target.files[0].name
+        : "";
+    }
+  }
+});
 initMonthYear();
 renderCalendar();
