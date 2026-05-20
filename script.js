@@ -380,7 +380,6 @@ async function showDetails(itemId) {
     const wrapper = document.createElement("div");
 
     if (fileObj.type === "link" && fileObj.url)
-      console.log("rendering attachment", fileObj);
     {
       const a = document.createElement("a");
 const text = fileObj.altText
