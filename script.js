@@ -112,14 +112,13 @@ async function saveCalendarItem(item) {
     date: item.date,
     category: item.category || "",
     title: item.title || "",
-    course: item.course || "",
     essential_understanding: item.essentialUnderstanding || "",
-    objectives: item.objectives || [],
+    objectives: item.objectives || "",
     quiz: item.quiz || null,
     powerpoint: item.powerpoint || null,
     notes: item.notes || null,
-    tasks: item.tasks || [],
-    videos: item.videos || []
+    task: item.task || null,
+    videos: item.videos || null
   };
 
   const { data, error } = await supabaseClient
@@ -147,14 +146,13 @@ async function loadCalendarItems() {
     date: row.date,
     category: row.category,
     title: row.title,
-    course: row.course,
-    essentialUnderstanding: row.essential_understanding,
-    objectives: row.objectives || [],
+    essentialUnderstanding: row.essential_understanding || "",
+    objectives: row.objectives || "",
     quiz: row.quiz || null,
     powerpoint: row.powerpoint || null,
     notes: row.notes || null,
-    tasks: row.tasks || [],
-    videos: row.videos || []
+    task: row.task || null,
+    videos: row.videos || null
   }));
 
   renderCalendar();
