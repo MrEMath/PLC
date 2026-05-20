@@ -1,9 +1,10 @@
 let calendarItems = [];
+
 const STORAGE_BUCKET = "plc-files";
-const FILE_FIELDS = ["quiz", "powerpoint", "notes"];
 const SUPABASE_URL = "https://kegiqnqfexqrpvvnxzqh.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlZ2lxbnFmZXhxcnB2dm54enFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTg0MzYsImV4cCI6MjA5NDc5NDQzNn0.l_Q89WwUInbzzhhLuvKW11sJlycR6yB_lHnyQxTV8Sw";
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const monthSelect = document.getElementById("monthSelect");
 const yearSelect = document.getElementById("yearSelect");
 const calendarGrid = document.getElementById("calendarGrid");
@@ -27,8 +28,6 @@ const itemCancelBtn = document.getElementById("itemCancelBtn");
 const itemDeleteBtn = document.getElementById("itemDeleteBtn");
 
 const resourceModal = document.getElementById("resourceModal");
-const resourceLinkFields = document.getElementById("resourceLinkFields");
-const resourceFileFields = document.getElementById("resourceFileFields");
 const resourceSaveBtn = document.getElementById("resourceSaveBtn");
 const resourceCancelBtn = document.getElementById("resourceCancelBtn");
 
@@ -58,63 +57,6 @@ function resetPendingResources() {
     videos: null
   };
 }
-function toggleResourceInput(type) {
-  const linkFields = document.getElementById("resourceLinkFields");
-  const fileFields = document.getElementById("resourceFileFields");
-  const fileInput = document.getElementById("resourceFileInput");
-
-  if (!linkFields || !fileFields) return;
-
-  if (type === "link") {
-    linkFields.style.display = "block";
-    fileFields.style.display = "none";
-  } else if (type === "file") {
-    linkFields.style.display = "none";
-    fileFields.style.display = "block";
-  }
-}
-function clearDetails() {
-  detailTitle.textContent = "";
-  detailCourse.textContent = "";
-  detailEU.textContent = "";
-  detailObjectives.innerHTML = "";
-if (item.objectives) {
-  const lines = item.objectives.split("\n").filter(Boolean);
-  lines.forEach(objective => {
-    const li = document.createElement("li");
-    li.textContent = objective;
-    detailObjectives.appendChild(li);
-  });
-}
- detailQuiz.innerHTML = "";
-detailPpt.innerHTML = "";
-detailNotes.innerHTML = "";
-  detailTasks.innerHTML = "";
-  detailVideos.innerHTML = "";
-async function renderFileLink(container, fileObj) {
-  if (!fileObj || !fileObj.path) return;
-
-  const a = document.createElement("a");
-  a.textContent = fileObj.name || "Open file";
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
-  a.href = "#";
-
-  try {
-    const signedUrl = await getSignedFileUrl(fileObj.path);
-    a.href = signedUrl;
-  } catch (err) {
-    a.textContent = `${fileObj.name || "File"} (unavailable)`;
-  }
-
-  container.appendChild(a);
-}
-
-await renderFileLink(detailQuiz, item.quiz);
-await renderFileLink(detailPpt, item.powerpoint);
-await renderFileLink(detailNotes, item.notes);
-await renderFileLink(detailTasks, item.task);
-await renderFileLink(detailVideos, item.videos);
 
 function initMonthYear() {
   monthSelect.innerHTML = "";
@@ -137,6 +79,19 @@ function initMonthYear() {
   monthSelect.value = "7";
   yearSelect.value = "2026";
 }
+
+function clearDetails() {
+  detailTitle.textContent = "";
+  if (detailCourse) detailCourse.textContent = "";
+  detailEU.textContent = "";
+  detailObjectives.innerHTML = "";
+  detailQuiz.innerHTML = "";
+  detailPpt.innerHTML = "";
+  detailNotes.innerHTML = "";
+  detailTasks.innerHTML = "";
+  detailVideos.innerHTML = "";
+}
+
 async function saveCalendarItem(item) {
   const payload = {
     id: item.id,
@@ -175,8 +130,8 @@ async function loadCalendarItems() {
   calendarItems = (data || []).map(row => ({
     id: row.id,
     date: row.date,
-    category: row.category,
-    title: row.title,
+    category: row.category || "",
+    title: row.title || "",
     essentialUnderstanding: row.essential_understanding || "",
     objectives: row.objectives || "",
     quiz: row.quiz || null,
@@ -188,93 +143,24 @@ async function loadCalendarItems() {
 
   renderCalendar();
 }
-function renderCalendar() {
-  const month = parseInt(monthSelect.value, 10);
-  const year = parseInt(yearSelect.value, 10);
 
-  calendarGrid.innerHTML = "";
+async function deleteCalendarItem(itemId) {
+  const { error } = await supabaseClient
+    .from("calendar_items")
+    .delete()
+    .eq("id", itemId);
 
-  const headerRow = document.createElement("div");
-  headerRow.className = "calendar-row header-row";
-
-  ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].forEach(dayName => {
-    const headerCell = document.createElement("div");
-    headerCell.className = "calendar-cell header-cell";
-    headerCell.textContent = dayName;
-    headerRow.appendChild(headerCell);
-  });
-
-  calendarGrid.appendChild(headerRow);
-
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  let currentDate = 1;
-
-  for (let week = 0; week < 6; week++) {
-    const row = document.createElement("div");
-    row.className = "calendar-row";
-
-    for (let weekday = 1; weekday <= 5; weekday++) {
-      const cell = document.createElement("div");
-      cell.className = "calendar-cell";
-
-      while (currentDate <= daysInMonth) {
-        const jsDay = new Date(year, month, currentDate).getDay();
-        if (jsDay >= 1 && jsDay <= 5) break;
-        currentDate++;
-      }
-
-      if (currentDate <= daysInMonth) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(currentDate).padStart(2, "0")}`;
-
-        const dayLabel = document.createElement("div");
-        dayLabel.className = "day-label";
-        dayLabel.textContent = currentDate;
-        cell.appendChild(dayLabel);
-
-        const plusBtn = document.createElement("button");
-        plusBtn.type = "button";
-        plusBtn.className = "addItemBtn";
-        plusBtn.textContent = "+";
-        plusBtn.addEventListener("click", () => openItemPopout(dateStr));
-        cell.appendChild(plusBtn);
-
-        const itemsForDay = calendarItems.filter(item => item.date === dateStr);
-        itemsForDay.forEach(item => {
-          const itemBtn = document.createElement("button");
-          itemBtn.type = "button";
-          itemBtn.className = "calendarItemBtn";
-          itemBtn.textContent = item.title;
-
-          itemBtn.addEventListener("click", () => {
-            document.querySelectorAll(".calendarItemBtn").forEach(btn => {
-              btn.classList.remove("selected");
-            });
-            itemBtn.classList.add("selected");
-            showDetails(item.id);
-          });
-
-          itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
-          cell.appendChild(itemBtn);
-        });
-
-        currentDate++;
-      }
-
-      row.appendChild(cell);
-    }
-
-    calendarGrid.appendChild(row);
-  }
+  if (error) throw error;
 }
+
 async function uploadResourceFile(file, fieldName) {
- const folderMap = {
-  quiz: "quizzes",
-  powerpoint: "powerpoints",
-  notes: "notes",
-  task: "tasks",
-  videos: "videos"
-};
+  const folderMap = {
+    quiz: "quizzes",
+    powerpoint: "powerpoints",
+    notes: "notes",
+    task: "tasks",
+    videos: "videos"
+  };
 
   const folder = folderMap[fieldName] || "misc";
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
@@ -308,84 +194,34 @@ async function getSignedFileUrl(path) {
   if (error) throw error;
   return data.signedUrl;
 }
-async function showDetails(itemId) {
-  const item = calendarItems.find(it => it.id === itemId);
-  if (!item) return;
 
-  detailTitle.textContent = item.title || "";
-  detailCourse.textContent = item.course || "";
-  detailEU.textContent = item.essentialUnderstanding || "";
+function toggleResourceInput(type) {
+  const linkFields = document.getElementById("resourceLinkFields");
+  const fileFields = document.getElementById("resourceFileFields");
 
-  detailObjectives.innerHTML = "";
-  (item.objectives || []).forEach(objective => {
-    const li = document.createElement("li");
-    li.textContent = objective;
-    detailObjectives.appendChild(li);
-  });
+  if (!linkFields || !fileFields) return;
 
-  detailQuiz.innerHTML = "";
-  detailPpt.innerHTML = "";
-  detailNotes.innerHTML = "";
-
-  async function renderFileLink(container, fileObj) {
-    if (!fileObj || !fileObj.path) return;
-
-    const a = document.createElement("a");
-    a.textContent = fileObj.name || "Open file";
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.href = "#";
-
-    try {
-      const signedUrl = await getSignedFileUrl(fileObj.path);
-      a.href = signedUrl;
-    } catch (err) {
-      a.textContent = `${fileObj.name || "File"} (unavailable)`;
-    }
-
-    container.appendChild(a);
+  if (type === "link") {
+    linkFields.style.display = "block";
+    fileFields.style.display = "none";
+  } else {
+    linkFields.style.display = "none";
+    fileFields.style.display = "block";
   }
-
-  await renderFileLink(detailQuiz, item.quiz);
-  await renderFileLink(detailPpt, item.powerpoint);
-  await renderFileLink(detailNotes, item.notes);
-
-  detailTasks.innerHTML = "";
-  (item.tasks || []).forEach(task => {
-    const li = document.createElement("li");
-    li.textContent = task;
-    detailTasks.appendChild(li);
-  });
-
-  detailVideos.innerHTML = "";
-  (item.videos || []).forEach(video => {
-    const li = document.createElement("li");
-    if (typeof video === "string") {
-      li.textContent = video;
-    } else {
-      const a = document.createElement("a");
-      a.href = video.url || "#";
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.textContent = video.label || video.url || "Video";
-      li.appendChild(a);
-    }
-    detailVideos.appendChild(li);
-  });
 }
 
 function refreshResourcePreviews() {
   const quizPreview = document.getElementById("quizPreview");
   const powerpointPreview = document.getElementById("powerpointPreview");
   const notesPreview = document.getElementById("notesPreview");
-  const tasksPreview = document.getElementById("tasksPreview");
+  const taskPreview = document.getElementById("taskPreview");
   const videosPreview = document.getElementById("videosPreview");
 
   if (quizPreview) quizPreview.textContent = pendingResources.quiz ? "Added" : "";
   if (powerpointPreview) powerpointPreview.textContent = pendingResources.powerpoint ? "Added" : "";
   if (notesPreview) notesPreview.textContent = pendingResources.notes ? "Added" : "";
-  if (tasksPreview) tasksPreview.textContent = pendingResources.tasks.length ? `${pendingResources.tasks.length} added` : "";
-  if (videosPreview) videosPreview.textContent = pendingResources.videos.length ? `${pendingResources.videos.length} added` : "";
+  if (taskPreview) taskPreview.textContent = pendingResources.task ? "Added" : "";
+  if (videosPreview) videosPreview.textContent = pendingResources.videos ? "Added" : "";
 }
 
 function renderCategoryFields(category) {
@@ -459,20 +295,18 @@ function openEditItemPopout(itemId) {
 
   editingItemId = itemId;
   currentEditingDate = item.date;
-
   pendingResources = {
     quiz: item.quiz || null,
-powerpoint: item.powerpoint || null,
-notes: item.notes || null,
-    tasks: Array.isArray(item.tasks) ? [...item.tasks] : [],
-    videos: Array.isArray(item.videos)
-      ? item.videos.map(video => typeof video === "string" ? video : (video.url || ""))
-      : []
+    powerpoint: item.powerpoint || null,
+    notes: item.notes || null,
+    task: item.task || null,
+    videos: item.videos || null
   };
 
   itemDateDisplay.textContent = `Date: ${item.date}`;
   itemCategory.value = item.category || "Topic";
   renderCategoryFields(item.category || "Topic");
+
   if (itemDeleteBtn) itemDeleteBtn.style.display = "inline-block";
   itemModal.classList.remove("hidden");
 
@@ -482,7 +316,7 @@ notes: item.notes || null,
 
   if (titleEl) titleEl.value = item.title || "";
   if (euEl) euEl.value = item.essentialUnderstanding || "";
-if (objectivesEl) objectivesEl.value = item.objectives || "";
+  if (objectivesEl) objectivesEl.value = item.objectives || "";
 
   refreshResourcePreviews();
 }
@@ -513,6 +347,127 @@ function closeResourcePopout() {
   resourceModal.classList.add("hidden");
 }
 
+async function showDetails(itemId) {
+  const item = calendarItems.find(it => it.id === itemId);
+  if (!item) return;
+
+  clearDetails();
+
+  detailTitle.textContent = item.title || "";
+  detailEU.textContent = item.essentialUnderstanding || "";
+
+  if (item.objectives) {
+    const lines = item.objectives.split("\n").filter(Boolean);
+    lines.forEach(objective => {
+      const li = document.createElement("li");
+      li.textContent = objective;
+      detailObjectives.appendChild(li);
+    });
+  }
+
+  async function renderFileLink(container, fileObj) {
+    if (!fileObj || !fileObj.path) return;
+
+    const a = document.createElement("a");
+    a.textContent = fileObj.name || "Open file";
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.href = "#";
+
+    try {
+      const signedUrl = await getSignedFileUrl(fileObj.path);
+      a.href = signedUrl;
+    } catch (err) {
+      a.textContent = `${fileObj.name || "File"} (unavailable)`;
+    }
+
+    container.appendChild(a);
+  }
+
+  await renderFileLink(detailQuiz, item.quiz);
+  await renderFileLink(detailPpt, item.powerpoint);
+  await renderFileLink(detailNotes, item.notes);
+  await renderFileLink(detailTasks, item.task);
+  await renderFileLink(detailVideos, item.videos);
+}
+
+function renderCalendar() {
+  const month = parseInt(monthSelect.value, 10);
+  const year = parseInt(yearSelect.value, 10);
+
+  calendarGrid.innerHTML = "";
+
+  const headerRow = document.createElement("div");
+  headerRow.className = "calendar-row header-row";
+
+  ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].forEach(dayName => {
+    const headerCell = document.createElement("div");
+    headerCell.className = "calendar-cell header-cell";
+    headerCell.textContent = dayName;
+    headerRow.appendChild(headerCell);
+  });
+
+  calendarGrid.appendChild(headerRow);
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let currentDate = 1;
+
+  for (let week = 0; week < 6; week++) {
+    const row = document.createElement("div");
+    row.className = "calendar-row";
+
+    for (let weekday = 1; weekday <= 5; weekday++) {
+      const cell = document.createElement("div");
+      cell.className = "calendar-cell";
+
+      while (currentDate <= daysInMonth) {
+        const jsDay = new Date(year, month, currentDate).getDay();
+        if (jsDay >= 1 && jsDay <= 5) break;
+        currentDate++;
+      }
+
+      if (currentDate <= daysInMonth) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(currentDate).padStart(2, "0")}`;
+
+        const dayLabel = document.createElement("div");
+        dayLabel.className = "day-label";
+        dayLabel.textContent = currentDate;
+        cell.appendChild(dayLabel);
+
+        const plusBtn = document.createElement("button");
+        plusBtn.type = "button";
+        plusBtn.className = "addItemBtn";
+        plusBtn.textContent = "+";
+        plusBtn.addEventListener("click", () => openItemPopout(dateStr));
+        cell.appendChild(plusBtn);
+
+        const itemsForDay = calendarItems.filter(item => item.date === dateStr);
+        itemsForDay.forEach(item => {
+          const itemBtn = document.createElement("button");
+          itemBtn.type = "button";
+          itemBtn.className = "calendarItemBtn";
+          itemBtn.textContent = item.title;
+          itemBtn.addEventListener("click", () => {
+            document.querySelectorAll(".calendarItemBtn").forEach(btn => {
+              btn.classList.remove("selected");
+            });
+            itemBtn.classList.add("selected");
+            showDetails(item.id);
+          });
+          itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+          cell.appendChild(itemBtn);
+        });
+
+        currentDate++;
+      }
+
+      row.appendChild(cell);
+    }
+
+    calendarGrid.appendChild(row);
+  }
+}
+
 itemSaveBtn.addEventListener("click", async () => {
   const category = itemCategory.value;
   const title = document.getElementById("fieldTitle")?.value.trim() || "";
@@ -534,7 +489,6 @@ itemSaveBtn.addEventListener("click", async () => {
   };
 
   const existingIndex = calendarItems.findIndex(x => x.id === item.id);
-
   if (existingIndex >= 0) {
     calendarItems[existingIndex] = item;
   } else {
@@ -568,7 +522,14 @@ if (resourceSaveBtn) {
 
     try {
       if (type === "link") {
-        value = linkValue;
+        value = linkValue
+          ? {
+              name: linkValue,
+              path: null,
+              type: "link",
+              url: linkValue
+            }
+          : null;
       } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
         value = await uploadResourceFile(fileInput.files[0], currentResourceField);
       }
@@ -582,12 +543,7 @@ if (resourceSaveBtn) {
       return;
     }
 
-    if (currentResourceField === "tasks" || currentResourceField === "videos") {
-      pendingResources[currentResourceField].push(value);
-    } else {
-      pendingResources[currentResourceField] = value;
-    }
-
+    pendingResources[currentResourceField] = value;
     refreshResourcePreviews();
 
     if (linkInput) linkInput.value = "";
@@ -602,27 +558,34 @@ if (resourceCancelBtn) {
 }
 
 if (itemDeleteBtn) {
-  itemDeleteBtn.addEventListener("click", () => {
+  itemDeleteBtn.addEventListener("click", async () => {
     if (!editingItemId) return;
 
     const confirmed = confirm("Delete this calendar item?");
     if (!confirmed) return;
 
-    const index = calendarItems.findIndex(item => item.id === editingItemId);
-    if (index !== -1) {
-      calendarItems.splice(index, 1);
+    try {
+      await deleteCalendarItem(editingItemId);
+      const index = calendarItems.findIndex(item => item.id === editingItemId);
+      if (index !== -1) {
+        calendarItems.splice(index, 1);
+      }
+      editingItemId = null;
+      closeItemPopout();
+      renderCalendar();
+      clearDetails();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      alert("Failed to delete event from Supabase.");
     }
-
-    editingItemId = null;
-    closeItemPopout();
-    renderCalendar();
-    clearDetails();
   });
 }
 
 itemCancelBtn.addEventListener("click", closeItemPopout);
+itemCategory.addEventListener("change", () => renderCategoryFields(itemCategory.value));
 monthSelect.addEventListener("change", renderCalendar);
 yearSelect.addEventListener("change", renderCalendar);
+
 document.addEventListener("change", (e) => {
   if (e.target && e.target.id === "resourceFileInput") {
     const selectedFileName = document.getElementById("selectedFileName");
@@ -633,5 +596,6 @@ document.addEventListener("change", (e) => {
     }
   }
 });
+
 initMonthYear();
 loadCalendarItems();
