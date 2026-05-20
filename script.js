@@ -153,7 +153,7 @@ async function deleteCalendarItem(itemId) {
   if (error) throw error;
 }
 
-async function uploadResourceFiles(files, fieldName) {
+async function uploadResourceFiles(files, fieldName, altText = "") {
   const folderMap = {
     quiz: "quizzes",
     powerpoint: "powerpoints",
@@ -184,7 +184,9 @@ async function uploadResourceFiles(files, fieldName) {
       name: file.name,
       path: data.path,
       type: file.type,
-      size: file.size
+      size: file.size,
+      url: null,
+      altText
     });
   }
 
@@ -332,7 +334,8 @@ function closeItemPopout() {
 
 function openResourcePopout(field) {
   currentResourceField = field;
-
+const altInput = document.getElementById("resourceAltInput");
+if (altInput) altInput.value = "";
   const linkRadio = document.querySelector("input[name='resType'][value='link']");
   if (linkRadio) linkRadio.checked = true;
   toggleResourceInput("link");
@@ -378,11 +381,15 @@ async function showDetails(itemId) {
 
     if (fileObj.type === "link" && fileObj.url) {
       const a = document.createElement("a");
-      a.textContent = fileObj.name || fileObj.url;
-      a.href = fileObj.url;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      wrapper.appendChild(a);
+const text = fileObj.altText
+  ? `${fileObj.name || "Resource"} — ${fileObj.altText}`
+  : (fileObj.name || fileObj.url);
+
+a.textContent = text;
+a.href = fileObj.url;
+a.target = "_blank";
+a.rel = "noopener noreferrer";
+wrapper.appendChild(a);
     } else if (fileObj.path) {
       const a = document.createElement("a");
       a.textContent = fileObj.name || "Open file";
@@ -530,7 +537,8 @@ if (resourceSaveBtn) {
     const selectedType = document.querySelector("input[name='resType']:checked");
     const linkInput = document.getElementById("resourceLinkInput");
     const fileInput = document.getElementById("resourceFileInput");
-
+const altInput = document.getElementById("resourceAltInput");
+const altText = altInput ? altInput.value.trim() : "";
     if (!selectedType || !currentResourceField) {
       closeResourcePopout();
       return;
@@ -546,14 +554,16 @@ if (resourceSaveBtn) {
           return;
         }
 
-        pendingResources[currentResourceField].push({
-          name: linkValue,
-          path: null,
-          type: "link",
-          url: linkValue
-        });
+       pendingResources[currentResourceField].push({
+  name: linkValue,
+  path: null,
+  type: "link",
+  size: null,
+  url: linkValue,
+  altText
+});
       } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
-        const uploadedFiles = await uploadResourceFiles(fileInput.files, currentResourceField);
+       const uploadedFiles = await uploadResourceFiles(fileInput.files, currentResourceField, altText);
         pendingResources[currentResourceField].push(...uploadedFiles);
       }
 
