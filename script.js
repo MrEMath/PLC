@@ -69,14 +69,12 @@ let pendingResources = {
 
 function resetPendingResources() {
   pendingResources = {
-  quiz: item.quiz || null,
-  powerpoint: item.powerpoint || null,
-  notes: item.notes || null,
-  tasks: Array.isArray(item.tasks) ? [...item.tasks] : [],
-  videos: Array.isArray(item.videos)
-    ? item.videos.map(video => typeof video === "string" ? video : (video.url || ""))
-    : []
-};
+    quiz: null,
+    powerpoint: null,
+    notes: null,
+    tasks: [],
+    videos: []
+  };
 }
 
 function clearDetails() {
