@@ -378,7 +378,7 @@ async function showDetails(itemId) {
 
   for (const fileObj of items) {
     const wrapper = document.createElement("div");
-
+wrapper.className = "resource-entry";
     if (fileObj.type === "link" && fileObj.url) {
       const a = document.createElement("a");
       const text = fileObj.altText?.trim()
