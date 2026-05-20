@@ -2,98 +2,102 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Curriculum Calendar</title>
-    <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="calendar-header">
+    <div class="calendar-controls">
+      <select id="monthSelect"></select>
+      <select id="yearSelect"></select>
+    </div>
 
-<header class="calendar-header">
-  <div class="calendar-controls">
-    <select id="monthSelect"></select>
-    <select id="yearSelect"></select>
-  </div>
-  <div class="header-spacer"></div>
-  <div class="calendar-brand">
-    <img src="Images/LMSHawks.png" alt="LMS" class="calendar-logo">
-    <img src="Images/LMS8thMath.png" alt="8th Math" class="calendar-logo-secondary">
-  </div>
-</header>
+    <div class="header-spacer"></div>
 
-<main class="calendar-layout">
-  <section class="calendar-grid" id="calendarGrid"></section>
+    <div class="calendar-brand">
+      <img src="Images/LMSHawks.png" alt="LMS" class="calendar-logo">
+      <img src="Images/LMS8thMath.png" alt="8th Math" class="calendar-logo-secondary">
+    </div>
+  </header>
 
-  <aside class="details-panel" id="detailsPanel">
-    <p><strong>Topic:</strong> <span id="detailTitle"></span></p>
-    <p><strong>Course:</strong> <span id="detailCourse"></span></p>
-    <p><strong>Essential Understanding:</strong> <span id="detailEU"></span></p>
-    <p><strong>Objectives:</strong></p>
-    <ul id="detailObjectives"></ul>
-    <p><strong>Quiz:</strong> <span id="detailQuiz"></span></p>
-    <p><strong>PowerPoint:</strong> <span id="detailPpt"></span></p>
-    <p><strong>Notes:</strong> <span id="detailNotes"></span></p>
-    <p><strong>Tasks:</strong></p>
-    <ul id="detailTasks"></ul>
-    <p><strong>Videos:</strong></p>
-    <ul id="detailVideos"></ul>
-  </aside>
-</main>
+  <main class="calendar-layout">
+    <section class="calendar-grid" id="calendarGrid"></section>
 
-<div id="itemModal" class="modal hidden">
-  <div class="modal-content">
-    <h2>Add Calendar Item</h2>
-    <p id="itemDateDisplay"></p>
-    <label>Category:
-      <select id="itemCategory">
-        <option value="Topic">Topic</option>
-        <option value="Quiz">Quiz</option>
-        <option value="Mastery">Hawk Mastery</option>
-        <option value="Benchmark">Benchmark</option>
-      </select>
-    </label>
-    <div id="categoryFields"></div>
-    <div class="modal-actions">
-      <button id="itemSaveBtn">Save</button>
-      <button type="button" id="itemDeleteBtn">Delete</button>
-      <button type="button" id="itemCancelBtn">Cancel</button>
+    <aside class="details-panel" id="detailsPanel">
+      <p><strong>Topic:</strong> <span id="detailTitle"></span></p>
+      <p><strong>Essential Understanding:</strong> <span id="detailEU"></span></p>
+
+      <p><strong>Objectives:</strong></p>
+      <ul id="detailObjectives"></ul>
+
+      <p><strong>Quiz:</strong> <span id="detailQuiz"></span></p>
+      <p><strong>PowerPoint:</strong> <span id="detailPpt"></span></p>
+      <p><strong>Notes:</strong> <span id="detailNotes"></span></p>
+      <p><strong>Task:</strong> <span id="detailTasks"></span></p>
+      <p><strong>Videos:</strong> <span id="detailVideos"></span></p>
+    </aside>
+  </main>
+
+  <div id="itemModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Add Calendar Item</h2>
+      <p id="itemDateDisplay"></p>
+
+      <label>
+        Category:
+        <select id="itemCategory">
+          <option value="Topic">Topic</option>
+        </select>
+      </label>
+
+      <div id="categoryFields"></div>
+
+      <div class="modal-actions">
+        <button type="button" id="itemSaveBtn">Save</button>
+        <button type="button" id="itemDeleteBtn">Delete</button>
+        <button type="button" id="itemCancelBtn">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="resourceModal" class="modal hidden">
-  <div class="modal-content">
-    <h3>Add Resource</h3>
+  <div id="resourceModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Add Resource</h3>
 
-   <label>
-  <input type="radio" name="resType" value="link" checked onclick="toggleResourceInput('link')">
-  Link
-</label>
+      <label>
+        <input type="radio" name="resType" value="link" checked onclick="toggleResourceInput('link')">
+        Link
+      </label>
 
-<label>
-  <input type="radio" name="resType" value="file" onclick="toggleResourceInput('file')">
-  Attachment
-</label>
+      <label>
+        <input type="radio" name="resType" value="file" onclick="toggleResourceInput('file')">
+        Attachment
+      </label>
 
-    <div id="resourceLinkFields" style="display:block;">
-  <label>URL:
-    <input type="url" id="resourceLinkInput">
-  </label>
-</div>
+      <div id="resourceLinkFields" style="display:block;">
+        <label>
+          URL:
+          <input type="url" id="resourceLinkInput">
+        </label>
+      </div>
 
-<div id="resourceFileFields" style="display:none;">
-  <input type="file" id="resourceFileInput" style="display:none;">
-  <button type="button" onclick="document.getElementById('resourceFileInput').click()">
-    Choose File
-  </button>
-  <span id="selectedFileName"></span>
-</div>
+      <div id="resourceFileFields" style="display:none;">
+        <input type="file" id="resourceFileInput" style="display:none;">
+        <button type="button" onclick="document.getElementById('resourceFileInput').click()">
+          Choose File
+        </button>
+        <span id="selectedFileName"></span>
+      </div>
 
-    <div class="modal-actions">
-      <button type="button" id="resourceSaveBtn">Save</button>
-      <button type="button" id="resourceCancelBtn">Cancel</button>
+      <div class="modal-actions">
+        <button type="button" id="resourceSaveBtn">Save</button>
+        <button type="button" id="resourceCancelBtn">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
 </body>
 </html>
