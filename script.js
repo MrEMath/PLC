@@ -76,7 +76,25 @@ function resetPendingResources() {
     videos: []
   };
 }
+function toggleResourceInput(type) {
+  const linkFields = document.getElementById("resourceLinkFields");
+  const fileFields = document.getElementById("resourceFileFields");
+  const fileInput = document.getElementById("resourceFileInput");
 
+  if (!linkFields || !fileFields) return;
+
+  if (type === "link") {
+    linkFields.style.display = "block";
+    fileFields.style.display = "none";
+  } else if (type === "file") {
+    linkFields.style.display = "none";
+    fileFields.style.display = "block";
+
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+}
 function clearDetails() {
   detailTitle.textContent = "";
   detailCourse.textContent = "";
