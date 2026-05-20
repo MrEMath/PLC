@@ -575,7 +575,7 @@ const altText = altInput ? altInput.value.trim() : "";
 
       if (linkInput) linkInput.value = "";
       if (fileInput) fileInput.value = "";
-
+if (altInput) altInput.value = "";
       const selectedFileName = document.getElementById("selectedFileName");
       if (selectedFileName) selectedFileName.textContent = "";
 
