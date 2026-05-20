@@ -79,11 +79,13 @@
       </label>
     </div>
 
-    <div id="resourceFileFields" class="hidden">
-      <label>Select File:
-        <input type="file" id="resourceFileInput">
-      </label>
-    </div>
+   <div id="resourceFileFields" style="display:none;">
+  <input type="file" id="resourceFileInput" style="display:none;">
+  <button type="button" onclick="document.getElementById('resourceFileInput').click()">
+    Choose File
+  </button>
+  <span id="selectedFileName"></span>
+</div>
 
     <div class="modal-actions">
       <button type="button" id="resourceSaveBtn">Save</button>
