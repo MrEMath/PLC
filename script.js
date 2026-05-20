@@ -140,7 +140,59 @@ function renderCalendar() {
     headerCell.textContent = dayName;
     headerRow.appendChild(headerCell);
   });
+async function saveCalendarItem(item) {
+  const payload = {
+    id: item.id,
+    date: item.date,
+    category: item.category || "",
+    title: item.title || "",
+    course: item.course || "",
+    essential_understanding: item.essentialUnderstanding || "",
+    objectives: item.objectives || [],
+    quiz: item.quiz || null,
+    powerpoint: item.powerpoint || null,
+    notes: item.notes || null,
+    tasks: item.tasks || [],
+    videos: item.videos || []
+  };
 
+  const { data, error } = await supabaseClient
+    .from("calendar_items")
+    .upsert(payload)
+    .select();
+
+  if (error) throw error;
+  return data;
+}
+
+async function loadCalendarItems() {
+  const { data, error } = await supabaseClient
+    .from("calendar_items")
+    .select("*")
+    .order("date", { ascending: true });
+
+  if (error) {
+    console.error("Error loading calendar items:", error);
+    return;
+  }
+
+  calendarItems = (data || []).map(row => ({
+    id: row.id,
+    date: row.date,
+    category: row.category,
+    title: row.title,
+    course: row.course,
+    essentialUnderstanding: row.essential_understanding,
+    objectives: row.objectives || [],
+    quiz: row.quiz || null,
+    powerpoint: row.powerpoint || null,
+    notes: row.notes || null,
+    tasks: row.tasks || [],
+    videos: row.videos || []
+  }));
+
+  renderCalendar();
+}
   calendarGrid.appendChild(headerRow);
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -447,68 +499,47 @@ function closeResourcePopout() {
   resourceModal.classList.add("hidden");
 }
 
-itemSaveBtn.addEventListener("click", () => {
-  const titleEl = document.getElementById("fieldTitle");
-  const euEl = document.getElementById("fieldEU");
-  const objectivesEl = document.getElementById("fieldObjectives");
+itemSaveBtn.addEventListener("click", async () => {
+  const category = itemCategory.value;
+  const title = document.getElementById("fieldTitle")?.value.trim() || "";
+  const course = document.getElementById("fieldCourse")?.value.trim() || "";
+  const essentialUnderstanding = document.getElementById("fieldEU")?.value.trim() || "";
+  const objectives = (document.getElementById("fieldObjectives")?.value || "")
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean);
 
-  const title = titleEl ? titleEl.value.trim() : "";
-  const essentialUnderstanding = euEl ? euEl.value.trim() : "";
-  const objectives = objectivesEl
-    ? objectivesEl.value.split("\n").map(s => s.trim()).filter(Boolean)
-    : [];
-
-  const quiz = pendingResources.quiz;
-  const powerpoint = pendingResources.powerpoint;
-  const notes = pendingResources.notes;
-  const tasks = pendingResources.tasks;
-  const videos = pendingResources.videos.map(v => ({ label: v, url: v }));
-
-  if (!title) {
-    alert("Please enter a title.");
-    return;
-  }
-
-  if (editingItemId) {
-    const item = calendarItems.find(it => it.id === editingItemId);
-    if (item) {
-      item.title = title;
-      item.essentialUnderstanding = essentialUnderstanding;
-      item.objectives = objectives;
-      item.quiz = quiz;
-      item.powerpoint = powerpoint;
-      item.notes = notes;
-      item.tasks = tasks;
-      item.videos = videos;
-      item.date = currentEditingDate;
-    }
-
-    closeItemPopout();
-    renderCalendar();
-    showDetails(editingItemId);
-    editingItemId = null;
-    return;
-  }
-
-  const newItem = {
-    id: "item-" + Date.now(),
+  const item = {
+    id: editingItemId || crypto.randomUUID(),
     date: currentEditingDate,
-    course: "LMS 8th Grade Math",
-    category: "Topic",
+    category,
     title,
+    course,
     essentialUnderstanding,
     objectives,
-    quiz,
-    powerpoint,
-    notes,
-    tasks,
-    videos
+    quiz: pendingResources.quiz || null,
+    powerpoint: pendingResources.powerpoint || null,
+    notes: pendingResources.notes || null,
+    tasks: pendingResources.tasks || [],
+    videos: pendingResources.videos || []
   };
 
-  calendarItems.push(newItem);
-  closeItemPopout();
-  renderCalendar();
-  showDetails(newItem.id);
+  const existingIndex = calendarItems.findIndex(x => x.id === item.id);
+
+  if (existingIndex >= 0) {
+    calendarItems[existingIndex] = item;
+  } else {
+    calendarItems.push(item);
+  }
+
+  try {
+    await saveCalendarItem(item);
+    closeItemPopout();
+    renderCalendar();
+  } catch (error) {
+    console.error("Error saving item:", error);
+    alert("Failed to save event to Supabase.");
+  }
 });
 
 if (resourceSaveBtn) {
