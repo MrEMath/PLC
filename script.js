@@ -34,8 +34,17 @@ const resourceCancelBtn = document.getElementById("resourceCancelBtn");
 const monthNames = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
+  
 ];
-
+const CATEGORY_COLORS = {
+  "Topic": "#577590",
+  "Quiz": "#F8961E",
+  "No School": "#43AA8B",
+  "No Students": "#90BE6D",
+  "CPA": "#F3722C",
+  "Benchmark": "#F94144",
+  "Diagnostic": "#F9C74F"
+};
 let currentEditingDate = null;
 let editingItemId = null;
 let currentResourceField = null;
@@ -481,6 +490,12 @@ function renderCalendar() {
           itemBtn.type = "button";
           itemBtn.className = "calendarItemBtn";
           itemBtn.textContent = item.title;
+            const color = CATEGORY_COLORS[item.category];
+  if (color) {
+    itemBtn.style.backgroundColor = color;
+    itemBtn.style.borderColor = color;
+    itemBtn.style.color = "#000"; // keep text readable
+  }
           itemBtn.addEventListener("click", () => {
             document.querySelectorAll(".calendarItemBtn").forEach(btn => {
               btn.classList.remove("selected");
