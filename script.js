@@ -1,22 +1,4 @@
-const calendarItems = [
-  {
-    id: "item-1",
-    date: "2026-08-03",
-    course: "LMS 8th Grade Math",
-    category: "Topic",
-    title: "Topic 1-1 Rational Numbers",
-    essentialUnderstanding: "Repeating decimals can be represented as an equivalent rational number.",
-    objectives: [
-      "Locate repeating decimals on a number line.",
-      "Write repeating decimals as fractions."
-    ],
-    quiz: "",
-    powerpoint: "",
-    notes: "",
-    tasks: [],
-    videos: []
-  }
-];
+let calendarItems = [];
 const STORAGE_BUCKET = "plc-files";
 const FILE_FIELDS = ["quiz", "powerpoint", "notes"];
 const SUPABASE_URL = "https://kegiqnqfexqrpvvnxzqh.supabase.co";
@@ -625,4 +607,4 @@ document.addEventListener("change", (e) => {
   }
 });
 initMonthYear();
-renderCalendar();
+loadCalendarItems();
