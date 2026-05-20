@@ -16,6 +16,9 @@ body {
   align-items: center;
   gap: 0.5rem;
 }
+.resource-entry {
+  margin-bottom: 0.75rem;
+}
 .header-spacer {
   flex: .35;              /* takes up all the space between controls and logo */
 }
