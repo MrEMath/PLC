@@ -89,10 +89,6 @@ function toggleResourceInput(type) {
   } else if (type === "file") {
     linkFields.style.display = "none";
     fileFields.style.display = "block";
-
-    if (fileInput) {
-      fileInput.click();
-    }
   }
 }
 function clearDetails() {
@@ -429,8 +425,21 @@ function closeItemPopout() {
   itemModal.classList.add("hidden");
 }
 
-function openResourcePopout(fieldName) {
-  currentResourceField = fieldName;
+function openResourcePopout(field) {
+  currentResourceField = field;
+
+  const linkRadio = document.querySelector("input[name='resType'][value='link']");
+  if (linkRadio) linkRadio.checked = true;
+  toggleResourceInput("link");
+
+  const fileInput = document.getElementById("resourceFileInput");
+  const selectedFileName = document.getElementById("selectedFileName");
+  const linkInput = document.getElementById("resourceLinkInput");
+
+  if (fileInput) fileInput.value = "";
+  if (selectedFileName) selectedFileName.textContent = "";
+  if (linkInput) linkInput.value = "";
+
   resourceModal.classList.remove("hidden");
 }
 
