@@ -17,7 +17,9 @@ const calendarItems = [
     videos: []
   }
 ];
-const SUPABASE_URL = "https://PLC.supabase.co";
+const STORAGE_BUCKET = "plc-files";
+const FILE_FIELDS = ["quiz", "powerpoint", "notes"];
+const SUPABASE_URL = "https://kegiqnqfexqrpvvnxzqh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlZ2lxbnFmZXhxcnB2dm54enFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTg0MzYsImV4cCI6MjA5NDc5NDQzNn0.l_Q89WwUInbzzhhLuvKW11sJlycR6yB_lHnyQxTV8Sw";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const monthSelect = document.getElementById("monthSelect");
@@ -58,21 +60,23 @@ let editingItemId = null;
 let currentResourceField = null;
 
 let pendingResources = {
-  quiz: "",
-  powerpoint: "",
-  notes: "",
+  quiz: null,
+  powerpoint: null,
+  notes: null,
   tasks: [],
   videos: []
 };
 
 function resetPendingResources() {
   pendingResources = {
-    quiz: "",
-    powerpoint: "",
-    notes: "",
-    tasks: [],
-    videos: []
-  };
+  quiz: item.quiz || null,
+  powerpoint: item.powerpoint || null,
+  notes: item.notes || null,
+  tasks: Array.isArray(item.tasks) ? [...item.tasks] : [],
+  videos: Array.isArray(item.videos)
+    ? item.videos.map(video => typeof video === "string" ? video : (video.url || ""))
+    : []
+};
 }
 
 function clearDetails() {
@@ -80,9 +84,9 @@ function clearDetails() {
   detailCourse.textContent = "";
   detailEU.textContent = "";
   detailObjectives.innerHTML = "";
-  detailQuiz.textContent = "";
-  detailPpt.textContent = "";
-  detailNotes.textContent = "";
+ detailQuiz.innerHTML = "";
+detailPpt.innerHTML = "";
+detailNotes.innerHTML = "";
   detailTasks.innerHTML = "";
   detailVideos.innerHTML = "";
 }
@@ -188,8 +192,47 @@ function renderCalendar() {
     calendarGrid.appendChild(row);
   }
 }
+async function uploadResourceFile(file, fieldName) {
+  const folderMap = {
+    quiz: "quizzes",
+    powerpoint: "powerpoints",
+    notes: "notes",
+    tasks: "tasks"
+  };
 
-function showDetails(itemId) {
+  const folder = folderMap[fieldName] || "misc";
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+  const filePath = `${folder}/${Date.now()}-${safeName}`;
+
+  const { data, error } = await supabaseClient
+    .storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type
+    });
+
+  if (error) throw error;
+
+  return {
+    name: file.name,
+    path: data.path,
+    type: file.type,
+    size: file.size
+  };
+}
+
+async function getSignedFileUrl(path) {
+  const { data, error } = await supabaseClient
+    .storage
+    .from(STORAGE_BUCKET)
+    .createSignedUrl(path, 60 * 60);
+
+  if (error) throw error;
+  return data.signedUrl;
+}
+async function showDetails(itemId) {
   const item = calendarItems.find(it => it.id === itemId);
   if (!item) return;
 
@@ -204,9 +247,32 @@ function showDetails(itemId) {
     detailObjectives.appendChild(li);
   });
 
-  detailQuiz.textContent = item.quiz || "";
-  detailPpt.textContent = item.powerpoint || "";
-  detailNotes.textContent = item.notes || "";
+  detailQuiz.innerHTML = "";
+  detailPpt.innerHTML = "";
+  detailNotes.innerHTML = "";
+
+  async function renderFileLink(container, fileObj) {
+    if (!fileObj || !fileObj.path) return;
+
+    const a = document.createElement("a");
+    a.textContent = fileObj.name || "Open file";
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.href = "#";
+
+    try {
+      const signedUrl = await getSignedFileUrl(fileObj.path);
+      a.href = signedUrl;
+    } catch (err) {
+      a.textContent = `${fileObj.name || "File"} (unavailable)`;
+    }
+
+    container.appendChild(a);
+  }
+
+  await renderFileLink(detailQuiz, item.quiz);
+  await renderFileLink(detailPpt, item.powerpoint);
+  await renderFileLink(detailNotes, item.notes);
 
   detailTasks.innerHTML = "";
   (item.tasks || []).forEach(task => {
@@ -421,7 +487,7 @@ itemSaveBtn.addEventListener("click", () => {
 });
 
 if (resourceSaveBtn) {
-  resourceSaveBtn.addEventListener("click", () => {
+  resourceSaveBtn.addEventListener("click", async () => {
     const selectedType = document.querySelector("input[name='resType']:checked");
     const linkInput = document.getElementById("resourceLinkInput");
     const fileInput = document.getElementById("resourceFileInput");
@@ -433,12 +499,17 @@ if (resourceSaveBtn) {
 
     const type = selectedType.value;
     const linkValue = linkInput ? linkInput.value.trim() : "";
-    let value = "";
+    let value = null;
 
-    if (type === "link") {
-      value = linkValue;
-    } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
-      value = fileInput.files[0].name;
+    try {
+      if (type === "link") {
+        value = linkValue;
+      } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        value = await uploadResourceFile(fileInput.files[0], currentResourceField);
+      }
+    } catch (err) {
+      alert("File upload failed: " + err.message);
+      return;
     }
 
     if (!currentResourceField || !value) {
@@ -453,6 +524,10 @@ if (resourceSaveBtn) {
     }
 
     refreshResourcePreviews();
+
+    if (linkInput) linkInput.value = "";
+    if (fileInput) fileInput.value = "";
+
     closeResourcePopout();
   });
 }
