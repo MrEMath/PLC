@@ -156,18 +156,60 @@ function toggleResourceInput(type) {
 }
 
 function refreshResourcePreviews() {
-  const qp = document.getElementById("quizPreview");
-  const pp = document.getElementById("powerpointPreview");
-  const np = document.getElementById("notesPreview");
-  const tp = document.getElementById("taskPreview");
-  const vp = document.getElementById("videosPreview");
-  if (qp) qp.textContent = pendingResources.quiz.length ? pendingResources.quiz.length + " added" : "";
-  if (pp) pp.textContent = pendingResources.powerpoint.length ? pendingResources.powerpoint.length + " added" : "";
-  if (np) np.textContent = pendingResources.notes.length ? pendingResources.notes.length + " added" : "";
-  if (tp) tp.textContent = pendingResources.task.length ? pendingResources.task.length + " added" : "";
-  if (vp) vp.textContent = pendingResources.videos.length ? pendingResources.videos.length + " added" : "";
-}
+  ["quiz","powerpoint","notes","task","videos"].forEach(field => {
+    const container = document.getElementById(field + "Preview");
+    if (!container) return;
+    container.innerHTML = "";
+    pendingResources[field].forEach((fileObj, index) => {
+      const wrapper = document.createElement("span");
+      wrapper.style.display = "inline-flex";
+      wrapper.style.alignItems = "center";
+      wrapper.style.gap = "4px";
+      wrapper.style.marginRight = "6px";
 
+      const label = document.createElement("span");
+      label.textContent = fileObj.altText && fileObj.altText.trim()
+        ? fileObj.altText
+        : (fileObj.name || fileObj.url || "Resource");
+      label.style.fontSize = "0.85em";
+
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.textContent = "✏️";
+      editBtn.title = "Edit alt text";
+      editBtn.style.fontSize = "0.75em";
+      editBtn.style.cursor = "pointer";
+      editBtn.addEventListener("click", () => openAttachmentEdit(field, index));
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.textContent = "✕";
+      deleteBtn.title = "Remove";
+      deleteBtn.style.fontSize = "0.75em";
+      deleteBtn.style.cursor = "pointer";
+      deleteBtn.addEventListener("click", () => {
+        pendingResources[field].splice(index, 1);
+        refreshResourcePreviews();
+      });
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(editBtn);
+      wrapper.appendChild(deleteBtn);
+      container.appendChild(wrapper);
+    });
+  });
+}
+let editingAttachmentField = null;
+let editingAttachmentIndex = null;
+
+function openAttachmentEdit(field, index) {
+  editingAttachmentField = field;
+  editingAttachmentIndex = index;
+  const fileObj = pendingResources[field][index];
+  const altInput = document.getElementById("attachmentAltInput");
+  if (altInput) altInput.value = fileObj.altText || "";
+  document.getElementById("attachmentEditModal").classList.remove("hidden");
+}
 function renderCategoryFields(category) {
   if (category === "Topic") {
     categoryFields.innerHTML = '<label>Title: <input type="text" id="fieldTitle"></label>' +
@@ -505,6 +547,18 @@ document.addEventListener("change", (e) => {
     if (sfn) sfn.textContent = e.target.files.length ? e.target.files[0].name : "";
   }
 });
+document.getElementById("attachmentSaveBtn").addEventListener("click", () => {
+  const altInput = document.getElementById("attachmentAltInput");
+  if (editingAttachmentField !== null && editingAttachmentIndex !== null) {
+    pendingResources[editingAttachmentField][editingAttachmentIndex].altText =
+      altInput ? altInput.value.trim() : "";
+    refreshResourcePreviews();
+  }
+  document.getElementById("attachmentEditModal").classList.add("hidden");
+});
 
+document.getElementById("attachmentCancelBtn").addEventListener("click", () => {
+  document.getElementById("attachmentEditModal").classList.add("hidden");
+});
 initMonthYear();
 loadCalendarItems();
