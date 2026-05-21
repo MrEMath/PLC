@@ -159,41 +159,30 @@ function refreshResourcePreviews() {
     if (!container) return;
     container.innerHTML = "";
     pendingResources[field].forEach((fileObj, index) => {
-      const wrapper = document.createElement("span");
-      wrapper.style.display = "inline-flex";
-      wrapper.style.alignItems = "center";
-      wrapper.style.gap = "4px";
-      wrapper.style.marginRight = "6px";
-
+      const row = document.createElement("div");
+      row.className = "attachment-row";
       const label = document.createElement("span");
+      label.className = "attachment-label";
       label.textContent = fileObj.altText && fileObj.altText.trim()
         ? fileObj.altText
         : (fileObj.name || fileObj.url || "Resource");
-      label.style.fontSize = "0.85em";
-
       const editBtn = document.createElement("button");
       editBtn.type = "button";
-      editBtn.textContent = "✏️";
-      editBtn.title = "Edit alt text";
-      editBtn.style.fontSize = "0.75em";
-      editBtn.style.cursor = "pointer";
+      editBtn.textContent = "Edit";
+      editBtn.className = "attachment-btn edit-btn";
       editBtn.addEventListener("click", () => openAttachmentEdit(field, index));
-
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
-      deleteBtn.textContent = "✕";
-      deleteBtn.title = "Remove";
-      deleteBtn.style.fontSize = "0.75em";
-      deleteBtn.style.cursor = "pointer";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.className = "attachment-btn delete-btn";
       deleteBtn.addEventListener("click", () => {
         pendingResources[field].splice(index, 1);
         refreshResourcePreviews();
       });
-
-      wrapper.appendChild(label);
-      wrapper.appendChild(editBtn);
-      wrapper.appendChild(deleteBtn);
-      container.appendChild(wrapper);
+      row.appendChild(label);
+      row.appendChild(editBtn);
+      row.appendChild(deleteBtn);
+      container.appendChild(row);
     });
   });
 }
@@ -210,17 +199,28 @@ function openAttachmentEdit(field, index) {
 }
 function renderCategoryFields(category) {
   if (category === "Topic") {
-    categoryFields.innerHTML = '<label>Title: <input type="text" id="fieldTitle"></label>' +
-      '<label>Essential Understanding: <textarea id="fieldEU" rows="3"></textarea></label>' +
-      '<label>Objectives (one per line): <textarea id="fieldObjectives" rows="4"></textarea></label>' +
-      '<div class="resourceRow"><span>Quiz:</span><button type="button" onclick="openResourcePopout(\'quiz\')">+</button><span id="quizPreview"></span></div>' +
-      '<div class="resourceRow"><span>PowerPoint:</span><button type="button" onclick="openResourcePopout(\'powerpoint\')">+</button><span id="powerpointPreview"></span></div>' +
-      '<div class="resourceRow"><span>Notes:</span><button type="button" onclick="openResourcePopout(\'notes\')">+</button><span id="notesPreview"></span></div>' +
-      '<div class="resourceRow"><span>Task:</span><button type="button" onclick="openResourcePopout(\'task\')">+</button><span id="taskPreview"></span></div>' +
-      '<div class="resourceRow"><span>Videos:</span><button type="button" onclick="openResourcePopout(\'videos\')">+</button><span id="videosPreview"></span></div>';
+    categoryFields.innerHTML =
+      '<div class="field-group">' +
+        'abel for="fieldTitle">Title:</label>' +
+        '<input type="text" id="fieldTitle">' +
+      '</div>' +
+      '<div class="field-group">' +
+        'abel for="fieldEU">Essential Understanding:</label>' +
+        '<textarea id="fieldEU" rows="3"></textarea>' +
+      '</div>' +
+      '<div class="field-group">' +
+        'abel for="fieldObjectives">Objectives (one per line):</label>' +
+        '<textarea id="fieldObjectives" rows="3"></textarea>' +
+      '</div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Quiz:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'quiz\')">+</button></div><div id="quizPreview" class="resource-preview"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">PowerPoint:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'powerpoint\')">+</button></div><div id="powerpointPreview" class="resource-preview"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Notes:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'notes\')">+</button></div><div id="notesPreview" class="resource-preview"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Task:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'task\')">+</button></div><div id="taskPreview" class="resource-preview"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Videos:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'videos\')">+</button></div><div id="videosPreview" class="resource-preview"></div></div>';
     refreshResourcePreviews();
   } else if (category === "No Students") {
-    categoryFields.innerHTML = '<label>Reason: <textarea id="fieldReason" rows="3"></textarea></label>';
+    categoryFields.innerHTML =
+      '<div class="field-group">abel for="fieldReason">Reason:</label><textarea id="fieldReason" rows="3"></textarea></div>';
   } else {
     categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
