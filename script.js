@@ -342,6 +342,27 @@ function renderCalendar() {
     for (let weekday = 1; weekday <= 5; weekday++) {
       const cell = document.createElement("div");
       cell.className = "calendar-cell";
+      cell.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        cell.classList.add("drag-over");
+      });
+      cell.addEventListener("dragleave", () => {
+        cell.classList.remove("drag-over");
+      });
+      cell.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        cell.classList.remove("drag-over");
+        const itemId = e.dataTransfer.getData("itemId");
+        const draggedItem = calendarItems.find(it => it.id === itemId);
+        if (!draggedItem || draggedItem.date === dateStr) return;
+        draggedItem.date = dateStr;
+        try {
+          await saveCalendarItem(draggedItem);
+          renderCalendar();
+        } catch (err) {
+          alert("Failed to move item: " + err.message);
+        }
+      });
       while (currentDate <= daysInMonth) {
         const jsDay = new Date(year, month, currentDate).getDay();
         if (jsDay >= 1 && jsDay <= 5) break;
@@ -364,6 +385,10 @@ function renderCalendar() {
           const itemBtn = document.createElement("button");
           itemBtn.type = "button";
           itemBtn.className = "calendarItemBtn";
+          itemBtn.draggable = true;
+          itemBtn.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("itemId", item.id);
+          });
           itemBtn.textContent = item.category === "No Students" ? (item.reason || "No Students") : (item.title || item.category || "Item");
           const color = CATEGORY_COLORS[item.category];
           if (color) {
