@@ -245,8 +245,21 @@ async function showDetails(itemId) {
   if (!item) return;
   clearDetails();
   const isNoStudents = item.category === "No Students";
-  detailTitle.textContent = isNoStudents ? "" : (item.title || "");
-  detailEU.textContent = isNoStudents ? "" : (item.essentialUnderstanding || "");
+
+const topicRow = document.getElementById("detailTitleRow");
+const euRow = document.getElementById("detailEURow");
+const objectivesRow = document.getElementById("detailObjectivesRow");
+const quizRow = document.getElementById("detailQuizRow");
+const pptRow = document.getElementById("detailPptRow");
+const notesRow = document.getElementById("detailNotesRow");
+const tasksRow = document.getElementById("detailTasksRow");
+const videosRow = document.getElementById("detailVideosRow");
+
+const topicRows = [topicRow, euRow, objectivesRow, quizRow, pptRow, notesRow, tasksRow, videosRow];
+topicRows.forEach(row => { if (row) row.style.display = isNoStudents ? "none" : "block"; });
+
+detailTitle.textContent = item.title || "";
+detailEU.textContent = item.essentialUnderstanding || "";
   const detailReasonRow = document.getElementById("detailReasonRow");
   const detailReason = document.getElementById("detailReason");
   if (isNoStudents) {
