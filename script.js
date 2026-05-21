@@ -9,8 +9,7 @@ const monthSelect = document.getElementById("monthSelect");
 const yearSelect = document.getElementById("yearSelect");
 const calendarGrid = document.getElementById("calendarGrid");
 const detailTitle = document.getElementById("detailTitle");
-const detailCourse = document.getElementById("detailCourse");
-const detailEU = document.getElementById("detailEU");
+
 const detailObjectives = document.getElementById("detailObjectives");
 const detailQuiz = document.getElementById("detailQuiz");
 const detailPpt = document.getElementById("detailPpt");
@@ -79,7 +78,6 @@ function initMonthYear() {
 
 function clearDetails() {
   detailTitle.textContent = "";
-  if (detailCourse) detailCourse.textContent = "";
   detailEU.textContent = "";
   detailObjectives.innerHTML = "";
   detailQuiz.innerHTML = "";
