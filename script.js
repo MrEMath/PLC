@@ -259,7 +259,7 @@ function openEditItemPopout(itemId) {
     powerpoint: Array.isArray(item.powerpoint) ? [...item.powerpoint] : [],
     notes: Array.isArray(item.notes) ? [...item.notes] : [],
     task: Array.isArray(item.task) ? [...item.task] : [],
-    videos: Array.isArray(item.videos) ? [...item.videos] : []
+    videos: Array.isArray(item.videos) ? [...item.videos] : [], links: Array.isArray(item.links) ? [...item.links] : [] ? [...item.videos] : [], links: Array.isArray(item.links) ? [...item.links] : [] ? [...item.videos] : []
   };
   itemDateDisplay.textContent = "Date: " + item.date;
   itemCategory.value = item.category || "Topic";
