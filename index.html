@@ -6,28 +6,29 @@
   <title>Curriculum Calendar</title>
   <link rel="stylesheet" href="style.css">
 </head>
+<body>
+
+  <!-- Attachment Alt Text Edit Modal -->
   <div id="attachmentEditModal" class="modal hidden">
-  <div class="modal-content">
-    <h3>Edit Attachment</h3>
-    abel>
-      Description / Alt Text:
-      <input type="text" id="attachmentAltInput">
-    </label>
-    <div class="modal-actions">
-      <button type="button" id="attachmentSaveBtn">Save</button>
-      <button type="button" id="attachmentCancelBtn">Cancel</button>
+    <div class="modal-content">
+      <h3>Edit Attachment</h3>
+      <label>
+        Description / Alt Text:
+        <input type="text" id="attachmentAltInput">
+      </label>
+      <div class="modal-actions">
+        <button type="button" id="attachmentSaveBtn">Save</button>
+        <button type="button" id="attachmentCancelBtn">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
-<body>
+
   <header class="calendar-header">
     <div class="calendar-controls">
       <select id="monthSelect"></select>
       <select id="yearSelect"></select>
     </div>
-
     <div class="header-spacer"></div>
-
     <div class="calendar-brand">
       <img src="Images/LMSHawks.png" alt="LMS" class="calendar-logo">
       <img src="Images/LMS8thMath.png" alt="8th Math" class="calendar-logo-secondary">
@@ -38,80 +39,63 @@
     <section class="calendar-grid" id="calendarGrid"></section>
 
     <aside class="details-panel" id="detailsPanel">
-  <div id="detailTitleRow"><p><strong>Topic:</strong> <span id="detailTitle"></span></p></div>
-  <div id="detailEURow"><p><strong>Essential Understanding:</strong> <span id="detailEU"></span></p></div>
-  <div id="detailObjectivesRow"><p><strong>Objectives:</strong></p><ul id="detailObjectives"></ul></div>
-  <div id="detailQuizRow"><p><strong>Quiz:</strong> <span id="detailQuiz"></span></p></div>
-  <div id="detailPptRow"><p><strong>PowerPoint:</strong> <span id="detailPpt"></span></p></div>
-  <div id="detailNotesRow"><p><strong>Notes:</strong> <span id="detailNotes"></span></p></div>
-  <div id="detailTasksRow"><p><strong>Task:</strong> <span id="detailTasks"></span></p></div>
-  <div id="detailVideosRow"><p><strong>Videos:</strong> <span id="detailVideos"></span></p></div>
-  <div id="detailReasonRow" style="display:none;"><p><strong>Reason:</strong> <span id="detailReason"></span></p></div>
-</aside>
+      <div id="detailTitleRow"><p><strong>Topic:</strong> <span id="detailTitle"></span></p></div>
+      <div id="detailEURow"><p><strong>Essential Understanding:</strong> <span id="detailEU"></span></p></div>
+      <div id="detailObjectivesRow"><p><strong>Objectives:</strong></p><ul id="detailObjectives"></ul></div>
+      <div id="detailQuizRow"><p><strong>Quiz:</strong> <span id="detailQuiz"></span></p></div>
+      <div id="detailPptRow"><p><strong>PowerPoint:</strong> <span id="detailPpt"></span></p></div>
+      <div id="detailNotesRow"><p><strong>Notes:</strong> <span id="detailNotes"></span></p></div>
+      <div id="detailTasksRow"><p><strong>Task:</strong> <span id="detailTasks"></span></p></div>
+      <div id="detailVideosRow"><p><strong>Videos:</strong> <span id="detailVideos"></span></p></div>
+      <div id="detailReasonRow" style="display:none;"><p><strong>Reason:</strong> <span id="detailReason"></span></p></div>
+    </aside>
   </main>
 
+  <!-- Add/Edit Calendar Item Modal -->
   <div id="itemModal" class="modal hidden">
     <div class="modal-content">
       <h2>Add Calendar Item</h2>
       <p id="itemDateDisplay"></p>
-
       <label>
-  Category:
-  <select id="itemCategory">
-    <option value="Topic">Topic</option>
-    <option value="Quiz">Quiz</option>
-    <option value="No School">No School</option>
-    <option value="No Students">No Students</option>
-    <option value="CPA">CPA</option>
-    <option value="Benchmark">Benchmark</option>
-    <option value="Diagnostic">Diagnostic</option>
-  </select>
-</label>
-
+        Category:
+        <select id="itemCategory">
+          <option value="Topic">Topic</option>
+          <option value="Quiz">Quiz</option>
+          <option value="No School">No School</option>
+          <option value="No Students">No Students</option>
+          <option value="CPA">CPA</option>
+          <option value="Benchmark">Benchmark</option>
+          <option value="Diagnostic">Diagnostic</option>
+        </select>
+      </label>
       <div id="categoryFields"></div>
-
       <div class="modal-actions">
         <button type="button" id="itemSaveBtn">Save</button>
-        <button type="button" id="itemDeleteBtn">Delete</button>
+        <button type="button" id="itemDeleteBtn" style="display:none;">Delete</button>
         <button type="button" id="itemCancelBtn">Cancel</button>
       </div>
     </div>
   </div>
 
+  <!-- Add Resource Modal -->
   <div id="resourceModal" class="modal hidden">
     <div class="modal-content">
       <h3>Add Resource</h3>
-
-      <label>
-        <input type="radio" name="resType" value="link" checked onclick="toggleResourceInput('link')">
-        Link
-      </label>
-
-      <label>
-        <input type="radio" name="resType" value="file" onclick="toggleResourceInput('file')">
-        Attachment
-      </label>
-
-      <div id="resourceLinkFields" style="display:block;">
-        <label>
-          URL:
-          <input type="url" id="resourceLinkInput">
-        </label>
+      <div>
+        <label><input type="radio" name="resType" value="link" checked onclick="toggleResourceInput('link')"> Link</label>
+        <label><input type="radio" name="resType" value="file" onclick="toggleResourceInput('file')"> Attachment</label>
       </div>
-
+      <div id="resourceLinkFields">
+        <label>URL: <input type="url" id="resourceLinkInput"></label>
+      </div>
       <div id="resourceFileFields" style="display:none;">
         <input type="file" id="resourceFileInput" style="display:none;" multiple>
-        <button type="button" onclick="document.getElementById('resourceFileInput').click()">
-          Choose File
-        </button>
+        <button type="button" onclick="document.getElementById('resourceFileInput').click()">Choose File</button>
         <span id="selectedFileName"></span>
       </div>
-<div id="resourceAltFields">
-  <label>
-    Alternate Text / Description:
-    <input type="text" id="resourceAltInput" placeholder="Describe this file or link">
-  </label>
-</div>
+      <label>Alternate Text / Description:
+        <input type="text" id="resourceAltInput" placeholder="Describe this file or link">
+      </label>
       <div class="modal-actions">
         <button type="button" id="resourceSaveBtn">Save</button>
         <button type="button" id="resourceCancelBtn">Cancel</button>
@@ -119,7 +103,7 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
 </body>
 </html>
