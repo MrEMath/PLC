@@ -293,7 +293,7 @@ function renderCategoryFields(category) {
     `;
     refreshResourcePreviews();
   } else {
-  } else if (category === "No Students") {
+ } else if (category === "No Students") {
   categoryFields.innerHTML = `
     abel>
       Reason:
