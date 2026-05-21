@@ -101,30 +101,8 @@ function clearDetails() {
   detailVideos.innerHTML = "";
 }
 
-async function saveCalendarItem(item) {
-  const payload = {
-    id: item.id,
-    date: item.date,
-    category: item.category || "",
-    title: item.title || "",
-    essential_understanding: item.essentialUnderstanding || "",
-    objectives: item.objectives || "",
-    quiz: item.quiz || null,
-    powerpoint: item.powerpoint || null,
-    notes: item.notes || null,
-    task: item.task || null,
-    videos: item.videos || null,
-    reason: item.reason || "",
-  };
-
-  const { data, error } = await supabaseClient
-    .from("calendar_items")
-    .upsert(payload)
-    .select();
-
-  if (error) throw error;
-  return data;
-}
+Uncaught SyntaxError: Unexpected token '}' (at script.js:306:1)
+favicon.ico:1  GET https://mremath.github.io/favicon.ico 404 (Not Found)
 
 async function loadCalendarItems() {
   const { data, error } = await supabaseClient
