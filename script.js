@@ -382,6 +382,16 @@ async function showDetails(itemId) {
   if (!item) return;
 
   clearDetails();
+  const detailReasonRow = document.getElementById("detailReasonRow");
+const detailReason = document.getElementById("detailReason");
+
+if (item.category === "No Students") {
+  if (detailReasonRow) detailReasonRow.style.display = "block";
+  if (detailReason) detailReason.textContent = item.reason || "";
+} else {
+  if (detailReasonRow) detailReasonRow.style.display = "none";
+  if (detailReason) detailReason.textContent = "";
+}
 
   detailTitle.textContent = item.title || "";
   detailEU.textContent = item.essentialUnderstanding || "";
