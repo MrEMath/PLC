@@ -342,21 +342,28 @@ function renderCalendar() {
     for (let weekday = 1; weekday <= 5; weekday++) {
       const cell = document.createElement("div");
       cell.className = "calendar-cell";
-      cell.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        cell.classList.add("drag-over");
-      });
-      cell.addEventListener("dragleave", () => {
-        cell.classList.remove("drag-over");
-      });
-      cell.addEventListener("drop", async (e) => {
+      
+      while (currentDate <= daysInMonth) {
+        const jsDay = new Date(year, month, currentDate).getDay();
+        if (jsDay >= 1 && jsDay <= 5) break;
+        currentDate++;
+      }
+      if (currentDate <= daysInMonth) {
+        const dateStr = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(currentDate).padStart(2, "0");
+        cell.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  cell.classList.add("drag-over");
+});
+cell.addEventListener("dragleave", () => {
+  cell.classList.remove("drag-over");
+});
+cell.addEventListener("drop", async (e) => {
   e.preventDefault();
   cell.classList.remove("drag-over");
-  const targetDate = dateStr;
   const itemId = e.dataTransfer.getData("itemId");
   const draggedItem = calendarItems.find(it => it.id === itemId);
-  if (!draggedItem || draggedItem.date === targetDate) return;
-  draggedItem.date = targetDate;
+  if (!draggedItem || draggedItem.date === dateStr) return;
+  draggedItem.date = dateStr;
   try {
     await saveCalendarItem(draggedItem);
     renderCalendar();
@@ -365,13 +372,6 @@ function renderCalendar() {
     alert("Failed to move item: " + err.message);
   }
 });
-      while (currentDate <= daysInMonth) {
-        const jsDay = new Date(year, month, currentDate).getDay();
-        if (jsDay >= 1 && jsDay <= 5) break;
-        currentDate++;
-      }
-      if (currentDate <= daysInMonth) {
-        const dateStr = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(currentDate).padStart(2, "0");
         const dayLabel = document.createElement("div");
         dayLabel.className = "day-label";
         dayLabel.textContent = currentDate;
