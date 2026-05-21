@@ -263,3 +263,23 @@ textarea {
 .btn-delete:hover {
   background: #d63639;
 }
+.resource-section { margin-top: 12px; }
+.resource-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.resource-label { font-weight: bold; font-size: 1rem; }
+.add-resource-btn {
+  background-color: #28a745; color: #fff; border: none;
+  border-radius: 5px; width: 26px; height: 26px;
+  font-size: 1.1rem; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+}
+.add-resource-btn:hover { background-color: #218838; }
+.attachment-row { display: flex; align-items: center; gap: 8px; margin: 4px 0 4px 20px; }
+.attachment-label { font-size: 0.9rem; flex: 1; }
+.attachment-btn { border: none; border-radius: 5px; padding: 3px 12px; font-size: 0.82rem; cursor: pointer; color: #fff; font-weight: 500; }
+.edit-btn { background-color: #17a2b8; }
+.edit-btn:hover { background-color: #138496; }
+.delete-btn { background-color: #dc3545; }
+.delete-btn:hover { background-color: #c82333; }
+.field-group { display: flex; flex-direction: column; margin-bottom: 10px; }
+.field-group label { font-weight: bold; margin-bottom: 3px; font-size: 0.9rem; }
+.field-group input, .field-group textarea { width: 100%; box-sizing: border-box; padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.9rem; }
