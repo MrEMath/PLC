@@ -203,51 +203,14 @@ function openAttachmentEdit(field, index) {
 }
 function renderCategoryFields(category) {
   if (category === "Topic") {
-    categoryFields.innerHTML = `
-      <label>Title: <input type="text" id="fieldTitle"></label>
-      <label>Essential Understanding: <textarea id="fieldEU" rows="3"></textarea></label>
-      <label>Objectives (one per line): <textarea id="fieldObjectives" rows="3"></textarea></label>
-      
-      <div class="resource-section">
-        <div class="resource-header">
-          <strong>Quiz:</strong>
-          <button type="button" class="btn-add" onclick="openResourcePopout('quiz')">+</button>
-        </div>
-        <div id="quizPreview" class="resource-list"></div>
-      </div>
-      
-      <div class="resource-section">
-        <div class="resource-header">
-          <strong>PowerPoint:</strong>
-          <button type="button" class="btn-add" onclick="openResourcePopout('powerpoint')">+</button>
-        </div>
-        <div id="powerpointPreview" class="resource-list"></div>
-      </div>
-      
-      <div class="resource-section">
-        <div class="resource-header">
-          <strong>Notes:</strong>
-          <button type="button" class="btn-add" onclick="openResourcePopout('notes')">+</button>
-        </div>
-        <div id="notesPreview" class="resource-list"></div>
-      </div>
-      
-      <div class="resource-section">
-        <div class="resource-header">
-          <strong>Task:</strong>
-          <button type="button" class="btn-add" onclick="openResourcePopout('task')">+</button>
-        </div>
-        <div id="taskPreview" class="resource-list"></div>
-      </div>
-      
-      <div class="resource-section">
-        <div class="resource-header">
-          <strong>Videos:</strong>
-          <button type="button" class="btn-add" onclick="openResourcePopout('videos')">+</button>
-        </div>
-        <div id="videosPreview" class="resource-list"></div>
-      </div>
-    `;
+    categoryFields.innerHTML = 'abel>Title: <input type="text" id="fieldTitle"></label>' +
+      'abel>Essential Understanding: <textarea id="fieldEU" rows="3"></textarea></label>' +
+      'abel>Objectives (one per line): <textarea id="fieldObjectives" rows="3"></textarea></label>' +
+      '<div class="resource-section"><div class="resource-header"><strong>Quiz:</strong><button type="button" class="btn-add" onclick="openResourcePopout(\'quiz\')">+</button></div><div id="quizPreview" class="resource-list"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><strong>PowerPoint:</strong><button type="button" class="btn-add" onclick="openResourcePopout(\'powerpoint\')">+</button></div><div id="powerpointPreview" class="resource-list"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><strong>Notes:</strong><button type="button" class="btn-add" onclick="openResourcePopout(\'notes\')">+</button></div><div id="notesPreview" class="resource-list"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><strong>Task:</strong><button type="button" class="btn-add" onclick="openResourcePopout(\'task\')">+</button></div><div id="taskPreview" class="resource-list"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><strong>Videos:</strong><button type="button" class="btn-add" onclick="openResourcePopout(\'videos\')">+</button></div><div id="videosPreview" class="resource-list"></div></div>';
     refreshResourcePreviews();
   } else if (category === "No Students") {
     categoryFields.innerHTML = 'abel>Reason: <textarea id="fieldReason"></textarea></label>';
