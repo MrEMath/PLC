@@ -194,3 +194,72 @@ textarea {
 #attachmentEditModal {
   z-index: 20;
 }
+.resource-section {
+  margin-bottom: 1rem;
+}
+
+.resource-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.resource-list {
+  margin-left: 1.5rem;
+}
+
+.attachment-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.attachment-name {
+  flex: 1;
+  font-size: 0.9em;
+}
+
+.btn-add {
+  background: #43AA8B;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.btn-add:hover {
+  background: #369977;
+}
+
+.btn-edit {
+  background: #577590;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+.btn-edit:hover {
+  background: #465f76;
+}
+
+.btn-delete {
+  background: #F94144;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+.btn-delete:hover {
+  background: #d63639;
+}
