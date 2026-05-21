@@ -204,9 +204,9 @@ function openAttachmentEdit(field, index) {
 function renderCategoryFields(category) {
   if (category === "Topic") {
     categoryFields.innerHTML = `
-      abel>Title: <input type="text" id="fieldTitle"></label>
-      abel>Essential Understanding: <textarea id="fieldEU" rows="3"></textarea></label>
-      abel>Objectives (one per line): <textarea id="fieldObjectives" rows="3"></textarea></label>
+      <label>Title: <input type="text" id="fieldTitle"></label>
+      <label>Essential Understanding: <textarea id="fieldEU" rows="3"></textarea></label>
+      <label>Objectives (one per line): <textarea id="fieldObjectives" rows="3"></textarea></label>
       
       <div class="resource-section">
         <div class="resource-header">
