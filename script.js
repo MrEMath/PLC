@@ -8,7 +8,6 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const monthSelect = document.getElementById("monthSelect");
 const yearSelect = document.getElementById("yearSelect");
 const calendarGrid = document.getElementById("calendarGrid");
-
 const detailTitle = document.getElementById("detailTitle");
 const detailCourse = document.getElementById("detailCourse");
 const detailEU = document.getElementById("detailEU");
@@ -18,7 +17,6 @@ const detailPpt = document.getElementById("detailPpt");
 const detailNotes = document.getElementById("detailNotes");
 const detailTasks = document.getElementById("detailTasks");
 const detailVideos = document.getElementById("detailVideos");
-
 const itemModal = document.getElementById("itemModal");
 const itemDateDisplay = document.getElementById("itemDateDisplay");
 const itemCategory = document.getElementById("itemCategory");
@@ -26,15 +24,11 @@ const categoryFields = document.getElementById("categoryFields");
 const itemSaveBtn = document.getElementById("itemSaveBtn");
 const itemCancelBtn = document.getElementById("itemCancelBtn");
 const itemDeleteBtn = document.getElementById("itemDeleteBtn");
-
 const resourceModal = document.getElementById("resourceModal");
 const resourceSaveBtn = document.getElementById("resourceSaveBtn");
 const resourceCancelBtn = document.getElementById("resourceCancelBtn");
 
-const monthNames = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December"
-];
+const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 const CATEGORY_COLORS = {
   "Topic": "#577590",
@@ -50,42 +44,27 @@ let currentEditingDate = null;
 let editingItemId = null;
 let currentResourceField = null;
 
-let pendingResources = {
-  quiz: [],
-  powerpoint: [],
-  notes: [],
-  task: [],
-  videos: []
-};
+let pendingResources = { quiz: [], powerpoint: [], notes: [], task: [], videos: [] };
 
 function resetPendingResources() {
-  pendingResources = {
-    quiz: [],
-    powerpoint: [],
-    notes: [],
-    task: [],
-    videos: []
-  };
+  pendingResources = { quiz: [], powerpoint: [], notes: [], task: [], videos: [] };
 }
 
 function initMonthYear() {
   monthSelect.innerHTML = "";
   yearSelect.innerHTML = "";
-
   monthNames.forEach((name, index) => {
     const opt = document.createElement("option");
     opt.value = index;
     opt.textContent = name;
     monthSelect.appendChild(opt);
   });
-
   for (let y = 2024; y <= 2030; y++) {
     const opt = document.createElement("option");
     opt.value = y;
     opt.textContent = y;
     yearSelect.appendChild(opt);
   }
-
   monthSelect.value = "7";
   yearSelect.value = "2026";
 }
@@ -100,51 +79,31 @@ function clearDetails() {
   detailNotes.innerHTML = "";
   detailTasks.innerHTML = "";
   detailVideos.innerHTML = "";
+  const dr = document.getElementById("detailReason");
+  if (dr) dr.textContent = "";
+  const drRow = document.getElementById("detailReasonRow");
+  if (drRow) drRow.style.display = "none";
 }
 
 async function saveCalendarItem(item) {
   const payload = {
-    id: item.id,
-    date: item.date,
-    category: item.category || "",
-    title: item.title || "",
-    essential_understanding: item.essentialUnderstanding || "",
-    objectives: item.objectives || "",
-    quiz: item.quiz || null,
-    powerpoint: item.powerpoint || null,
-    notes: item.notes || null,
-    task: item.task || null,
-    videos: item.videos || null,
-    reason: item.reason || ""
+    id: item.id, date: item.date, category: item.category || "",
+    title: item.title || "", essential_understanding: item.essentialUnderstanding || "",
+    objectives: item.objectives || "", quiz: item.quiz || null,
+    powerpoint: item.powerpoint || null, notes: item.notes || null,
+    task: item.task || null, videos: item.videos || null, reason: item.reason || ""
   };
-
-  const { data, error } = await supabaseClient
-    .from("calendar_items")
-    .upsert(payload)
-    .select();
-
+  const { data, error } = await supabaseClient.from("calendar_items").upsert(payload).select();
   if (error) throw error;
   return data;
 }
 
 async function loadCalendarItems() {
-  const { data, error } = await supabaseClient
-    .from("calendar_items")
-    .select("*")
-    .order("date", { ascending: true });
-
-  if (error) {
-    console.error("Error loading calendar items:", error);
-    return;
-  }
-
+  const { data, error } = await supabaseClient.from("calendar_items").select("*").order("date", { ascending: true });
+  if (error) { console.error("Error loading:", error); return; }
   calendarItems = (data || []).map(row => ({
-    id: row.id,
-    date: row.date,
-    category: row.category || "",
-    title: row.title || "",
-    essentialUnderstanding: row.essential_understanding || "",
-    objectives: row.objectives || "",
+    id: row.id, date: row.date, category: row.category || "", title: row.title || "",
+    essentialUnderstanding: row.essential_understanding || "", objectives: row.objectives || "",
     quiz: Array.isArray(row.quiz) ? row.quiz : [],
     powerpoint: Array.isArray(row.powerpoint) ? row.powerpoint : [],
     notes: Array.isArray(row.notes) ? row.notes : [],
@@ -152,65 +111,30 @@ async function loadCalendarItems() {
     videos: Array.isArray(row.videos) ? row.videos : [],
     reason: row.reason || ""
   }));
-
   renderCalendar();
 }
 
 async function deleteCalendarItem(itemId) {
-  const { error } = await supabaseClient
-    .from("calendar_items")
-    .delete()
-    .eq("id", itemId);
-
+  const { error } = await supabaseClient.from("calendar_items").delete().eq("id", itemId);
   if (error) throw error;
 }
 
 async function uploadResourceFiles(files, fieldName, altText = "") {
-  const folderMap = {
-    quiz: "quizzes",
-    powerpoint: "powerpoints",
-    notes: "notes",
-    task: "tasks",
-    videos: "videos"
-  };
-
+  const folderMap = { quiz: "quizzes", powerpoint: "powerpoints", notes: "notes", task: "tasks", videos: "videos" };
   const folder = folderMap[fieldName] || "misc";
   const uploaded = [];
-
   for (const file of files) {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-    const filePath = `${folder}/${Date.now()}-${safeName}`;
-
-    const { data, error } = await supabaseClient
-      .storage
-      .from(STORAGE_BUCKET)
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: file.type
-      });
-
+    const filePath = folder + "/" + Date.now() + "-" + safeName;
+    const { data, error } = await supabaseClient.storage.from(STORAGE_BUCKET).upload(filePath, file, { cacheControl: "3600", upsert: false, contentType: file.type });
     if (error) throw error;
-
-    uploaded.push({
-      name: file.name,
-      path: data.path,
-      type: file.type,
-      size: file.size,
-      url: null,
-      altText
-    });
+    uploaded.push({ name: file.name, path: data.path, type: file.type, size: file.size, url: null, altText });
   }
-
   return uploaded;
 }
 
 async function getSignedFileUrl(path) {
-  const { data, error } = await supabaseClient
-    .storage
-    .from(STORAGE_BUCKET)
-    .createSignedUrl(path, 60 * 60);
-
+  const { data, error } = await supabaseClient.storage.from(STORAGE_BUCKET).createSignedUrl(path, 3600);
   if (error) throw error;
   return data.signedUrl;
 }
@@ -218,59 +142,46 @@ async function getSignedFileUrl(path) {
 function toggleResourceInput(type) {
   const linkFields = document.getElementById("resourceLinkFields");
   const fileFields = document.getElementById("resourceFileFields");
-
   if (!linkFields || !fileFields) return;
-
-  if (type === "link") {
-    linkFields.style.display = "block";
-    fileFields.style.display = "none";
-  } else {
-    linkFields.style.display = "none";
-    fileFields.style.display = "block";
-  }
+  if (type === "link") { linkFields.style.display = "block"; fileFields.style.display = "none"; }
+  else { linkFields.style.display = "none"; fileFields.style.display = "block"; }
 }
 
 function refreshResourcePreviews() {
-  const quizPreview = document.getElementById("quizPreview");
-  const powerpointPreview = document.getElementById("powerpointPreview");
-  const notesPreview = document.getElementById("notesPreview");
-  const taskPreview = document.getElementById("taskPreview");
-  const videosPreview = document.getElementById("videosPreview");
-
-  if (quizPreview) quizPreview.textContent = pendingResources.quiz.length ? `${pendingResources.quiz.length} added` : "";
-  if (powerpointPreview) powerpointPreview.textContent = pendingResources.powerpoint.length ? `${pendingResources.powerpoint.length} added` : "";
-  if (notesPreview) notesPreview.textContent = pendingResources.notes.length ? `${pendingResources.notes.length} added` : "";
-  if (taskPreview) taskPreview.textContent = pendingResources.task.length ? `${pendingResources.task.length} added` : "";
-  if (videosPreview) videosPreview.textContent = pendingResources.videos.length ? `${pendingResources.videos.length} added` : "";
+  const qp = document.getElementById("quizPreview");
+  const pp = document.getElementById("powerpointPreview");
+  const np = document.getElementById("notesPreview");
+  const tp = document.getElementById("taskPreview");
+  const vp = document.getElementById("videosPreview");
+  if (qp) qp.textContent = pendingResources.quiz.length ? pendingResources.quiz.length + " added" : "";
+  if (pp) pp.textContent = pendingResources.powerpoint.length ? pendingResources.powerpoint.length + " added" : "";
+  if (np) np.textContent = pendingResources.notes.length ? pendingResources.notes.length + " added" : "";
+  if (tp) tp.textContent = pendingResources.task.length ? pendingResources.task.length + " added" : "";
+  if (vp) vp.textContent = pendingResources.videos.length ? pendingResources.videos.length + " added" : "";
 }
 
 function renderCategoryFields(category) {
   if (category === "Topic") {
-    categoryFields.innerHTML = `
-      abel>Title: <input type="text" id="fieldTitle"></label>
-      abel>Essential Understanding: <textarea id="fieldEU" rows="3"></textarea></label>
-      abel>Objectives (one per line): <textarea id="fieldObjectives" rows="4"></textarea></label>
-      <div class="resourceRow"><span>Quiz:</span><button type="button" onclick="openResourcePopout('quiz')">+</button><span id="quizPreview"></span></div>
-      <div class="resourceRow"><span>PowerPoint:</span><button type="button" onclick="openResourcePopout('powerpoint')">+</button><span id="powerpointPreview"></span></div>
-      <div class="resourceRow"><span>Notes:</span><button type="button" onclick="openResourcePopout('notes')">+</button><span id="notesPreview"></span></div>
-      <div class="resourceRow"><span>Task:</span><button type="button" onclick="openResourcePopout('task')">+</button><span id="taskPreview"></span></div>
-      <div class="resourceRow"><span>Videos:</span><button type="button" onclick="openResourcePopout('videos')">+</button><span id="videosPreview"></span></div>
-    `;
+    categoryFields.innerHTML = '<label>Title: <input type="text" id="fieldTitle"></label>' +
+      '<label>Essential Understanding: <textarea id="fieldEU" rows="3"></textarea></label>' +
+      '<label>Objectives (one per line): <textarea id="fieldObjectives" rows="4"></textarea></label>' +
+      '<div class="resourceRow"><span>Quiz:</span><button type="button" onclick="openResourcePopout(\'quiz\')">+</button><span id="quizPreview"></span></div>' +
+      '<div class="resourceRow"><span>PowerPoint:</span><button type="button" onclick="openResourcePopout(\'powerpoint\')">+</button><span id="powerpointPreview"></span></div>' +
+      '<div class="resourceRow"><span>Notes:</span><button type="button" onclick="openResourcePopout(\'notes\')">+</button><span id="notesPreview"></span></div>' +
+      '<div class="resourceRow"><span>Task:</span><button type="button" onclick="openResourcePopout(\'task\')">+</button><span id="taskPreview"></span></div>' +
+      '<div class="resourceRow"><span>Videos:</span><button type="button" onclick="openResourcePopout(\'videos\')">+</button><span id="videosPreview"></span></div>';
     refreshResourcePreviews();
   } else if (category === "No Students") {
-    categoryFields.innerHTML = `
-      abel>Reason: <textarea id="fieldReason" rows="3"></textarea></label>
-    `;
+    categoryFields.innerHTML = '<label>Reason: <textarea id="fieldReason" rows="3"></textarea></label>';
   } else {
-    categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
+    categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
 }
-
 function openItemPopout(dateStr) {
   editingItemId = null;
   currentEditingDate = dateStr;
   resetPendingResources();
-  itemDateDisplay.textContent = `Date: ${dateStr}`;
+  itemDateDisplay.textContent = "Date: " + dateStr;
   itemCategory.value = "Topic";
   renderCategoryFields("Topic");
   if (itemDeleteBtn) itemDeleteBtn.style.display = "none";
@@ -280,10 +191,8 @@ function openItemPopout(dateStr) {
 function openEditItemPopout(itemId) {
   const item = calendarItems.find(it => it.id === itemId);
   if (!item) return;
-
   editingItemId = itemId;
   currentEditingDate = item.date;
-
   pendingResources = {
     quiz: Array.isArray(item.quiz) ? [...item.quiz] : [],
     powerpoint: Array.isArray(item.powerpoint) ? [...item.powerpoint] : [],
@@ -291,24 +200,19 @@ function openEditItemPopout(itemId) {
     task: Array.isArray(item.task) ? [...item.task] : [],
     videos: Array.isArray(item.videos) ? [...item.videos] : []
   };
-
-  itemDateDisplay.textContent = `Date: ${item.date}`;
+  itemDateDisplay.textContent = "Date: " + item.date;
   itemCategory.value = item.category || "Topic";
   renderCategoryFields(item.category || "Topic");
-
   if (itemDeleteBtn) itemDeleteBtn.style.display = "inline-block";
   itemModal.classList.remove("hidden");
-
   const titleEl = document.getElementById("fieldTitle");
   const euEl = document.getElementById("fieldEU");
   const objectivesEl = document.getElementById("fieldObjectives");
   const reasonEl = document.getElementById("fieldReason");
-
   if (titleEl) titleEl.value = item.title || "";
   if (euEl) euEl.value = item.essentialUnderstanding || "";
   if (objectivesEl) objectivesEl.value = item.objectives || "";
   if (reasonEl) reasonEl.value = item.reason || "";
-
   refreshResourcePreviews();
 }
 
@@ -318,21 +222,17 @@ function closeItemPopout() {
 
 function openResourcePopout(field) {
   currentResourceField = field;
-
   const linkRadio = document.querySelector("input[name='resType'][value='link']");
   if (linkRadio) linkRadio.checked = true;
   toggleResourceInput("link");
-
   const fileInput = document.getElementById("resourceFileInput");
   const selectedFileName = document.getElementById("selectedFileName");
   const linkInput = document.getElementById("resourceLinkInput");
   const altInput = document.getElementById("resourceAltInput");
-
   if (fileInput) fileInput.value = "";
   if (selectedFileName) selectedFileName.textContent = "";
   if (linkInput) linkInput.value = "";
   if (altInput) altInput.value = "";
-
   resourceModal.classList.remove("hidden");
 }
 
@@ -343,30 +243,25 @@ function closeResourcePopout() {
 async function showDetails(itemId) {
   const item = calendarItems.find(it => it.id === itemId);
   if (!item) return;
-
   clearDetails();
-
-  detailTitle.textContent = item.title || "";
-  detailEU.textContent = item.essentialUnderstanding || "";
-
+  const isNoStudents = item.category === "No Students";
+  detailTitle.textContent = isNoStudents ? "" : (item.title || "");
+  detailEU.textContent = isNoStudents ? "" : (item.essentialUnderstanding || "");
   const detailReasonRow = document.getElementById("detailReasonRow");
   const detailReason = document.getElementById("detailReason");
-  if (item.category === "No Students") {
+  if (isNoStudents) {
     if (detailReasonRow) detailReasonRow.style.display = "block";
     if (detailReason) detailReason.textContent = item.reason || "";
   } else {
     if (detailReasonRow) detailReasonRow.style.display = "none";
-    if (detailReason) detailReason.textContent = "";
   }
-
-  if (item.objectives) {
+  if (!isNoStudents && item.objectives) {
     item.objectives.split("\n").filter(Boolean).forEach(obj => {
       const li = document.createElement("li");
       li.textContent = obj;
       detailObjectives.appendChild(li);
     });
   }
-
   async function renderFileLinks(container, items) {
     if (!container || !Array.isArray(items) || !items.length) return;
     for (const fileObj of items) {
@@ -374,16 +269,14 @@ async function showDetails(itemId) {
       wrapper.style.marginBottom = "0.75rem";
       if (fileObj.type === "link" && fileObj.url) {
         const a = document.createElement("a");
-        const text = fileObj.altText && fileObj.altText.trim() ? fileObj.altText : (fileObj.name || fileObj.url || "Open link");
-        a.textContent = text;
+        a.textContent = fileObj.altText && fileObj.altText.trim() ? fileObj.altText : (fileObj.name || fileObj.url);
         a.href = fileObj.url;
         a.target = "_blank";
         a.rel = "noopener noreferrer";
         wrapper.appendChild(a);
       } else if (fileObj.path) {
         const a = document.createElement("a");
-        const text = fileObj.altText && fileObj.altText.trim() ? fileObj.altText : (fileObj.name || "Open file");
-        a.textContent = text;
+        a.textContent = fileObj.altText && fileObj.altText.trim() ? fileObj.altText : (fileObj.name || "Open file");
         a.target = "_blank";
         a.rel = "noopener noreferrer";
         a.href = "#";
@@ -391,19 +284,20 @@ async function showDetails(itemId) {
           const signedUrl = await getSignedFileUrl(fileObj.path);
           a.href = signedUrl;
         } catch (err) {
-          a.textContent = (fileObj.altText && fileObj.altText.trim() ? fileObj.altText : (fileObj.name || "File")) + " (unavailable)";
+          a.textContent = (fileObj.name || "File") + " (unavailable)";
         }
         wrapper.appendChild(a);
       }
       container.appendChild(wrapper);
     }
   }
-
-  await renderFileLinks(detailQuiz, item.quiz);
-  await renderFileLinks(detailPpt, item.powerpoint);
-  await renderFileLinks(detailNotes, item.notes);
-  await renderFileLinks(detailTasks, item.task);
-  await renderFileLinks(detailVideos, item.videos);
+  if (!isNoStudents) {
+    await renderFileLinks(detailQuiz, item.quiz);
+    await renderFileLinks(detailPpt, item.powerpoint);
+    await renderFileLinks(detailNotes, item.notes);
+    await renderFileLinks(detailTasks, item.task);
+    await renderFileLinks(detailVideos, item.videos);
+  }
 }
 
 function renderCalendar() {
@@ -449,7 +343,7 @@ function renderCalendar() {
           const itemBtn = document.createElement("button");
           itemBtn.type = "button";
           itemBtn.className = "calendarItemBtn";
-          itemBtn.textContent = item.title || item.category || "Item";
+          itemBtn.textContent = item.category === "No Students" ? (item.reason || "No Students") : (item.title || item.category || "Item");
           const color = CATEGORY_COLORS[item.category];
           if (color) {
             itemBtn.style.backgroundColor = color;
@@ -481,11 +375,7 @@ itemSaveBtn.addEventListener("click", async () => {
   const item = {
     id: editingItemId || crypto.randomUUID(),
     date: currentEditingDate,
-    category,
-    title,
-    essentialUnderstanding,
-    objectives,
-    reason,
+    category, title, essentialUnderstanding, objectives, reason,
     quiz: pendingResources.quiz || [],
     powerpoint: pendingResources.powerpoint || [],
     notes: pendingResources.notes || [],
@@ -493,11 +383,7 @@ itemSaveBtn.addEventListener("click", async () => {
     videos: pendingResources.videos || []
   };
   const existingIndex = calendarItems.findIndex(x => x.id === item.id);
-  if (existingIndex >= 0) {
-    calendarItems[existingIndex] = item;
-  } else {
-    calendarItems.push(item);
-  }
+  if (existingIndex >= 0) { calendarItems[existingIndex] = item; } else { calendarItems.push(item); }
   try {
     await saveCalendarItem(item);
     closeItemPopout();
@@ -530,8 +416,8 @@ if (resourceSaveBtn) {
       if (linkInput) linkInput.value = "";
       if (fileInput) fileInput.value = "";
       if (altInput) altInput.value = "";
-      const selectedFileName = document.getElementById("selectedFileName");
-      if (selectedFileName) selectedFileName.textContent = "";
+      const sfn = document.getElementById("selectedFileName");
+      if (sfn) sfn.textContent = "";
       closeResourcePopout();
     } catch (err) {
       alert("Resource upload failed: " + err.message);
@@ -539,15 +425,12 @@ if (resourceSaveBtn) {
   });
 }
 
-if (resourceCancelBtn) {
-  resourceCancelBtn.addEventListener("click", closeResourcePopout);
-}
+if (resourceCancelBtn) { resourceCancelBtn.addEventListener("click", closeResourcePopout); }
 
 if (itemDeleteBtn) {
   itemDeleteBtn.addEventListener("click", async () => {
     if (!editingItemId) return;
-    const confirmed = confirm("Delete this calendar item?");
-    if (!confirmed) return;
+    if (!confirm("Delete this calendar item?")) return;
     try {
       await deleteCalendarItem(editingItemId);
       const index = calendarItems.findIndex(item => item.id === editingItemId);
@@ -570,10 +453,8 @@ yearSelect.addEventListener("change", renderCalendar);
 
 document.addEventListener("change", (e) => {
   if (e.target && e.target.id === "resourceFileInput") {
-    const selectedFileName = document.getElementById("selectedFileName");
-    if (selectedFileName) {
-      selectedFileName.textContent = e.target.files.length ? e.target.files[0].name : "";
-    }
+    const sfn = document.getElementById("selectedFileName");
+    if (sfn) sfn.textContent = e.target.files.length ? e.target.files[0].name : "";
   }
 });
 
