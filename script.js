@@ -372,7 +372,210 @@ async function showDetails(itemId) {
     for (const fileObj of items) {
       const wrapper = document.createElement("div");
       wrapper.style.marginBottom = "0.75rem";
-
       if (fileObj.type === "link" && fileObj.url) {
         const a = document.createElement("a");
-        a.textContent = fileObj.altText?.
+        const text = fileObj.altText && fileObj.altText.trim() ? fileObj.altText : (fileObj.name || fileObj.url || "Open link");
+        a.textContent = text;
+        a.href = fileObj.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        wrapper.appendChild(a);
+      } else if (fileObj.path) {
+        const a = document.createElement("a");
+        const text = fileObj.altText && fileObj.altText.trim() ? fileObj.altText : (fileObj.name || "Open file");
+        a.textContent = text;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.href = "#";
+        try {
+          const signedUrl = await getSignedFileUrl(fileObj.path);
+          a.href = signedUrl;
+        } catch (err) {
+          a.textContent = (fileObj.altText && fileObj.altText.trim() ? fileObj.altText : (fileObj.name || "File")) + " (unavailable)";
+        }
+        wrapper.appendChild(a);
+      }
+      container.appendChild(wrapper);
+    }
+  }
+
+  await renderFileLinks(detailQuiz, item.quiz);
+  await renderFileLinks(detailPpt, item.powerpoint);
+  await renderFileLinks(detailNotes, item.notes);
+  await renderFileLinks(detailTasks, item.task);
+  await renderFileLinks(detailVideos, item.videos);
+}
+
+function renderCalendar() {
+  const month = parseInt(monthSelect.value, 10);
+  const year = parseInt(yearSelect.value, 10);
+  calendarGrid.innerHTML = "";
+  const headerRow = document.createElement("div");
+  headerRow.className = "calendar-row header-row";
+  ["Monday","Tuesday","Wednesday","Thursday","Friday"].forEach(dayName => {
+    const headerCell = document.createElement("div");
+    headerCell.className = "calendar-cell header-cell";
+    headerCell.textContent = dayName;
+    headerRow.appendChild(headerCell);
+  });
+  calendarGrid.appendChild(headerRow);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let currentDate = 1;
+  for (let week = 0; week < 6; week++) {
+    const row = document.createElement("div");
+    row.className = "calendar-row";
+    for (let weekday = 1; weekday <= 5; weekday++) {
+      const cell = document.createElement("div");
+      cell.className = "calendar-cell";
+      while (currentDate <= daysInMonth) {
+        const jsDay = new Date(year, month, currentDate).getDay();
+        if (jsDay >= 1 && jsDay <= 5) break;
+        currentDate++;
+      }
+      if (currentDate <= daysInMonth) {
+        const dateStr = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(currentDate).padStart(2, "0");
+        const dayLabel = document.createElement("div");
+        dayLabel.className = "day-label";
+        dayLabel.textContent = currentDate;
+        cell.appendChild(dayLabel);
+        const plusBtn = document.createElement("button");
+        plusBtn.type = "button";
+        plusBtn.className = "addItemBtn";
+        plusBtn.textContent = "+";
+        plusBtn.addEventListener("click", () => openItemPopout(dateStr));
+        cell.appendChild(plusBtn);
+        const itemsForDay = calendarItems.filter(item => item.date === dateStr);
+        itemsForDay.forEach(item => {
+          const itemBtn = document.createElement("button");
+          itemBtn.type = "button";
+          itemBtn.className = "calendarItemBtn";
+          itemBtn.textContent = item.title || item.category || "Item";
+          const color = CATEGORY_COLORS[item.category];
+          if (color) {
+            itemBtn.style.backgroundColor = color;
+            itemBtn.style.borderColor = color;
+            itemBtn.style.color = "#000";
+          }
+          itemBtn.addEventListener("click", () => {
+            document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
+            itemBtn.classList.add("selected");
+            showDetails(item.id);
+          });
+          itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+          cell.appendChild(itemBtn);
+        });
+        currentDate++;
+      }
+      row.appendChild(cell);
+    }
+    calendarGrid.appendChild(row);
+  }
+}
+
+itemSaveBtn.addEventListener("click", async () => {
+  const category = itemCategory.value;
+  const title = document.getElementById("fieldTitle") ? document.getElementById("fieldTitle").value.trim() : "";
+  const essentialUnderstanding = document.getElementById("fieldEU") ? document.getElementById("fieldEU").value.trim() : "";
+  const objectives = document.getElementById("fieldObjectives") ? document.getElementById("fieldObjectives").value.trim() : "";
+  const reason = document.getElementById("fieldReason") ? document.getElementById("fieldReason").value.trim() : "";
+  const item = {
+    id: editingItemId || crypto.randomUUID(),
+    date: currentEditingDate,
+    category,
+    title,
+    essentialUnderstanding,
+    objectives,
+    reason,
+    quiz: pendingResources.quiz || [],
+    powerpoint: pendingResources.powerpoint || [],
+    notes: pendingResources.notes || [],
+    task: pendingResources.task || [],
+    videos: pendingResources.videos || []
+  };
+  const existingIndex = calendarItems.findIndex(x => x.id === item.id);
+  if (existingIndex >= 0) {
+    calendarItems[existingIndex] = item;
+  } else {
+    calendarItems.push(item);
+  }
+  try {
+    await saveCalendarItem(item);
+    closeItemPopout();
+    renderCalendar();
+  } catch (error) {
+    console.error("Error saving item:", error);
+    alert("Failed to save event to Supabase.");
+  }
+});
+
+if (resourceSaveBtn) {
+  resourceSaveBtn.addEventListener("click", async () => {
+    const selectedType = document.querySelector("input[name='resType']:checked");
+    const linkInput = document.getElementById("resourceLinkInput");
+    const fileInput = document.getElementById("resourceFileInput");
+    const altInput = document.getElementById("resourceAltInput");
+    if (!selectedType || !currentResourceField) { closeResourcePopout(); return; }
+    const type = selectedType.value;
+    const linkValue = linkInput ? linkInput.value.trim() : "";
+    const altText = altInput ? altInput.value.trim() : "";
+    try {
+      if (type === "link") {
+        if (!linkValue) { closeResourcePopout(); return; }
+        pendingResources[currentResourceField].push({ name: linkValue, path: null, type: "link", size: null, url: linkValue, altText });
+      } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        const uploadedFiles = await uploadResourceFiles(fileInput.files, currentResourceField, altText);
+        pendingResources[currentResourceField].push(...uploadedFiles);
+      }
+      refreshResourcePreviews();
+      if (linkInput) linkInput.value = "";
+      if (fileInput) fileInput.value = "";
+      if (altInput) altInput.value = "";
+      const selectedFileName = document.getElementById("selectedFileName");
+      if (selectedFileName) selectedFileName.textContent = "";
+      closeResourcePopout();
+    } catch (err) {
+      alert("Resource upload failed: " + err.message);
+    }
+  });
+}
+
+if (resourceCancelBtn) {
+  resourceCancelBtn.addEventListener("click", closeResourcePopout);
+}
+
+if (itemDeleteBtn) {
+  itemDeleteBtn.addEventListener("click", async () => {
+    if (!editingItemId) return;
+    const confirmed = confirm("Delete this calendar item?");
+    if (!confirmed) return;
+    try {
+      await deleteCalendarItem(editingItemId);
+      const index = calendarItems.findIndex(item => item.id === editingItemId);
+      if (index !== -1) calendarItems.splice(index, 1);
+      editingItemId = null;
+      closeItemPopout();
+      renderCalendar();
+      clearDetails();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      alert("Failed to delete event from Supabase.");
+    }
+  });
+}
+
+itemCancelBtn.addEventListener("click", closeItemPopout);
+itemCategory.addEventListener("change", () => renderCategoryFields(itemCategory.value));
+monthSelect.addEventListener("change", renderCalendar);
+yearSelect.addEventListener("change", renderCalendar);
+
+document.addEventListener("change", (e) => {
+  if (e.target && e.target.id === "resourceFileInput") {
+    const selectedFileName = document.getElementById("selectedFileName");
+    if (selectedFileName) {
+      selectedFileName.textContent = e.target.files.length ? e.target.files[0].name : "";
+    }
+  }
+});
+
+initMonthYear();
+loadCalendarItems();
