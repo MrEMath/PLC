@@ -51,10 +51,10 @@ let currentEditingDate = null;
 let editingItemId = null;
 let currentResourceField = null;
 
-let pendingResources = { quiz: [], powerpoint: [], notes: [], task: [], videos: [] };
+let pendingResources = { quiz: [], powerpoint: [], notes: [], task: [], videos: [], links: [] };
 
 function resetPendingResources() {
-  pendingResources = { quiz: [], powerpoint: [], notes: [], task: [], videos: [] };
+  pendingResources = { quiz: [], powerpoint: [], notes: [], task: [], videos: [] , links: []};
 }
 
 function initMonthYear() {
@@ -97,7 +97,7 @@ async function saveCalendarItem(item) {
     title: item.title || "", essential_understanding: item.essentialUnderstanding || "",
     objectives: item.objectives || "", quiz: item.quiz || null,
     powerpoint: item.powerpoint || null, notes: item.notes || null,
-    task: item.task || null, videos: item.videos || null, reason: item.reason || ""
+    task: item.task || null, videos: item.videos || null, links: item.links || null, reason: item.reason || ""
   };
   const { data, error } = await supabaseClient.from("calendar_items").upsert(payload).select();
   if (error) throw error;
@@ -114,7 +114,7 @@ async function loadCalendarItems() {
     powerpoint: Array.isArray(row.powerpoint) ? row.powerpoint : [],
     notes: Array.isArray(row.notes) ? row.notes : [],
     task: Array.isArray(row.task) ? row.task : [],
-    videos: Array.isArray(row.videos) ? row.videos : [],
+    videos: Array.isArray(row.videos) ? row.videos : [], links: Array.isArray(row.links) ? row.links : [] ? row.videos : [],
     reason: row.reason || ""
   }));
   renderCalendar();
@@ -154,7 +154,7 @@ function toggleResourceInput(type) {
 }
 
 function refreshResourcePreviews() {
-  ["quiz","powerpoint","notes","task","videos"].forEach(field => {
+  ["quiz","powerpoint","notes","task","videos","links"].forEach(field => {
     const container = document.getElementById(field + "Preview");
     if (!container) return;
     container.innerHTML = "";
@@ -218,9 +218,22 @@ function renderCategoryFields(category) {
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">Task:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'task\')">+</button></div><div id="taskPreview" class="resource-preview"></div></div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">Videos:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'videos\')">+</button></div><div id="videosPreview" class="resource-preview"></div></div>';
     refreshResourcePreviews();
-  } else if (category === "No Students") {
+} else if (category === "No Students") {
     categoryFields.innerHTML =
-     '<div class="field-group"><b>Reason:</b><textarea id="fieldReason" rows="3"></textarea></div>';
+      '<div class="field-group"><b>Reason:</b><input type="text" id="fieldReason"></div>';
+  } else if (category === "No School") {
+    categoryFields.innerHTML =
+      '<div class="field-group"><b>Reason:</b><input type="text" id="fieldReason"></div>';
+  } else if (category === "Quiz") {
+    categoryFields.innerHTML =
+      '<div class="field-group"><b>Topic:</b><input type="text" id="fieldTitle"></div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Links:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'links\')">+</button></div><div id="linksPreview" class="resource-preview"></div></div>';
+    refreshResourcePreviews();
+  } else if (category === "CPA" || category === "Benchmark" || category === "Diagnostic") {
+    categoryFields.innerHTML =
+      '<div class="field-group"><b>Title:</b><input type="text" id="fieldTitle"></div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Links:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'links\')">+</button></div><div id="linksPreview" class="resource-preview"></div></div>';
+    refreshResourcePreviews();
   } else {
     categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
@@ -468,7 +481,7 @@ itemSaveBtn.addEventListener("click", async () => {
     powerpoint: pendingResources.powerpoint || [],
     notes: pendingResources.notes || [],
     task: pendingResources.task || [],
-    videos: pendingResources.videos || []
+    videos: pendingResources.videos || [], links: pendingResources.links || [] || []
   };
   const existingIndex = calendarItems.findIndex(x => x.id === item.id);
   if (existingIndex >= 0) { calendarItems[existingIndex] = item; } else { calendarItems.push(item); }
