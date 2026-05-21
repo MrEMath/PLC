@@ -39,7 +39,15 @@ const CATEGORY_COLORS = {
   "Benchmark": "#F94144",
   "Diagnostic": "#F9C74F"
 };
-
+const CATEGORY_TEXT_COLORS = {
+  "Topic": "#ffffff",
+  "Quiz": "#000000",
+  "No School": "#ffffff",
+  "No Students": "#000000",
+  "CPA": "#ffffff",
+  "Benchmark": "#ffffff",
+  "Diagnostic": "#000000"
+};
 let currentEditingDate = null;
 let editingItemId = null;
 let currentResourceField = null;
@@ -361,7 +369,7 @@ function renderCalendar() {
           if (color) {
             itemBtn.style.backgroundColor = color;
             itemBtn.style.borderColor = color;
-            itemBtn.style.color = "#000";
+            itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
           }
           itemBtn.addEventListener("click", () => {
             document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
