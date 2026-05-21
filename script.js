@@ -159,34 +159,41 @@ function refreshResourcePreviews() {
     if (!container) return;
     container.innerHTML = "";
     pendingResources[field].forEach((fileObj, index) => {
-      const row = document.createElement("div");
-      row.className = "attachment-row";
-      
-      const nameSpan = document.createElement("span");
-      nameSpan.textContent = fileObj.altText && fileObj.altText.trim()
+      const wrapper = document.createElement("span");
+      wrapper.style.display = "inline-flex";
+      wrapper.style.alignItems = "center";
+      wrapper.style.gap = "4px";
+      wrapper.style.marginRight = "6px";
+
+      const label = document.createElement("span");
+      label.textContent = fileObj.altText && fileObj.altText.trim()
         ? fileObj.altText
         : (fileObj.name || fileObj.url || "Resource");
-      nameSpan.className = "attachment-name";
-      
+      label.style.fontSize = "0.85em";
+
       const editBtn = document.createElement("button");
       editBtn.type = "button";
-      editBtn.textContent = "Edit";
-      editBtn.className = "btn-edit";
+      editBtn.textContent = "✏️";
+      editBtn.title = "Edit alt text";
+      editBtn.style.fontSize = "0.75em";
+      editBtn.style.cursor = "pointer";
       editBtn.addEventListener("click", () => openAttachmentEdit(field, index));
-      
+
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
-      deleteBtn.textContent = "Delete";
-      deleteBtn.className = "btn-delete";
+      deleteBtn.textContent = "✕";
+      deleteBtn.title = "Remove";
+      deleteBtn.style.fontSize = "0.75em";
+      deleteBtn.style.cursor = "pointer";
       deleteBtn.addEventListener("click", () => {
         pendingResources[field].splice(index, 1);
         refreshResourcePreviews();
       });
-      
-      row.appendChild(nameSpan);
-      row.appendChild(editBtn);
-      row.appendChild(deleteBtn);
-      container.appendChild(row);
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(editBtn);
+      wrapper.appendChild(deleteBtn);
+      container.appendChild(wrapper);
     });
   });
 }
@@ -202,54 +209,18 @@ function openAttachmentEdit(field, index) {
   document.getElementById("attachmentEditModal").classList.remove("hidden");
 }
 function renderCategoryFields(category) {
- function renderCategoryFields(category) {
   if (category === "Topic") {
-    categoryFields.innerHTML =
-      '<label>Title: <input type="text" id="fieldTitle"></label>' +
+    categoryFields.innerHTML = '<label>Title: <input type="text" id="fieldTitle"></label>' +
       '<label>Essential Understanding: <textarea id="fieldEU" rows="3"></textarea></label>' +
       '<label>Objectives (one per line): <textarea id="fieldObjectives" rows="4"></textarea></label>' +
-
-      '<div class="resource-section">' +
-        '<h4>Quiz</h4>' +
-        '<button type="button" class="addResourceBtn" data-field="quiz">Add Quiz Resource</button>' +
-        '<div id="quizPreview" class="resource-preview"></div>' +
-      '</div>' +
-
-      '<div class="resource-section">' +
-        '<h4>PowerPoint</h4>' +
-        '<button type="button" class="addResourceBtn" data-field="powerpoint">Add PowerPoint</button>' +
-        '<div id="powerpointPreview" class="resource-preview"></div>' +
-      '</div>' +
-
-      '<div class="resource-section">' +
-        '<h4>Notes</h4>' +
-        '<button type="button" class="addResourceBtn" data-field="notes">Add Notes</button>' +
-        '<div id="notesPreview" class="resource-preview"></div>' +
-      '</div>' +
-
-      '<div class="resource-section">' +
-        '<h4>Task</h4>' +
-        '<button type="button" class="addResourceBtn" data-field="task">Add Task</button>' +
-        '<div id="taskPreview" class="resource-preview"></div>' +
-      '</div>' +
-
-      '<div class="resource-section">' +
-        '<h4>Videos</h4>' +
-        '<button type="button" class="addResourceBtn" data-field="videos">Add Video</button>' +
-        '<div id="videosPreview" class="resource-preview"></div>' +
-      '</div>';
-    
-    document.querySelectorAll(".addResourceBtn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const field = btn.getAttribute("data-field");
-        openResourcePopout(field);
-      });
-    });
-
+      '<div class="resourceRow"><span>Quiz:</span><button type="button" onclick="openResourcePopout(\'quiz\')">+</button><span id="quizPreview"></span></div>' +
+      '<div class="resourceRow"><span>PowerPoint:</span><button type="button" onclick="openResourcePopout(\'powerpoint\')">+</button><span id="powerpointPreview"></span></div>' +
+      '<div class="resourceRow"><span>Notes:</span><button type="button" onclick="openResourcePopout(\'notes\')">+</button><span id="notesPreview"></span></div>' +
+      '<div class="resourceRow"><span>Task:</span><button type="button" onclick="openResourcePopout(\'task\')">+</button><span id="taskPreview"></span></div>' +
+      '<div class="resourceRow"><span>Videos:</span><button type="button" onclick="openResourcePopout(\'videos\')">+</button><span id="videosPreview"></span></div>';
     refreshResourcePreviews();
   } else if (category === "No Students") {
-    categoryFields.innerHTML =
-      '<label>Reason: <textarea id="fieldReason" rows="3"></textarea></label>';
+    categoryFields.innerHTML = '<label>Reason: <textarea id="fieldReason" rows="3"></textarea></label>';
   } else {
     categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
