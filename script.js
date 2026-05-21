@@ -113,7 +113,8 @@ async function saveCalendarItem(item) {
     powerpoint: item.powerpoint || null,
     notes: item.notes || null,
     task: item.task || null,
-    videos: item.videos || null
+    videos: item.videos || null,
+    reason: item.reason || "",
   };
 
   const { data, error } = await supabaseClient
@@ -147,7 +148,8 @@ async function loadCalendarItems() {
   powerpoint: Array.isArray(row.powerpoint) ? row.powerpoint : [],
   notes: Array.isArray(row.notes) ? row.notes : [],
   task: Array.isArray(row.task) ? row.task : [],
-  videos: Array.isArray(row.videos) ? row.videos : []
+  videos: Array.isArray(row.videos) ? row.videos : [],
+    reason: row.reason || "",
   }));
 
   renderCalendar();
@@ -291,7 +293,16 @@ function renderCategoryFields(category) {
     `;
     refreshResourcePreviews();
   } else {
-    categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
+  } else if (category === "No Students") {
+  categoryFields.innerHTML = `
+    abel>
+      Reason:
+      <textarea id="fieldReason" rows="3"></textarea>
+    </label>
+  `;
+} else {
+  categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
+}
   }
 }
 
@@ -322,6 +333,8 @@ function openEditItemPopout(itemId) {
   itemDateDisplay.textContent = `Date: ${item.date}`;
   itemCategory.value = item.category || "Topic";
   renderCategoryFields(item.category || "Topic");
+  const reasonEl = document.getElementById("fieldReason");
+if (reasonEl) reasonEl.value = item.reason || "";
 
   if (itemDeleteBtn) itemDeleteBtn.style.display = "inline-block";
   itemModal.classList.remove("hidden");
@@ -522,7 +535,22 @@ itemSaveBtn.addEventListener("click", async () => {
   const title = document.getElementById("fieldTitle")?.value.trim() || "";
   const essentialUnderstanding = document.getElementById("fieldEU")?.value.trim() || "";
   const objectives = document.getElementById("fieldObjectives")?.value.trim() || "";
+  const reason = document.getElementById("fieldReason")?.value.trim() || "";
 
+  const item = {
+    id: editingItemId || crypto.randomUUID(),
+    date: currentEditingDate,
+    category,
+    title,
+    essentialUnderstanding,
+    objectives,
+    reason,
+    quiz: pendingResources.quiz || [],
+    powerpoint: pendingResources.powerpoint || [],
+    notes: pendingResources.notes || [],
+    task: pendingResources.task || [],
+    videos: pendingResources.videos || []
+  };
   const item = {
     id: editingItemId || crypto.randomUUID(),
     date: currentEditingDate,
