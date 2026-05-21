@@ -153,7 +153,7 @@ function toggleResourceInput(type) {
   else { linkFields.style.display = "none"; fileFields.style.display = "block"; }
 }
 
-function function refreshResourcePreviews() {
+function refreshResourcePreviews() {
   ["quiz","powerpoint","notes","task","videos"].forEach(field => {
     const container = document.getElementById(field + "Preview");
     if (!container) return;
@@ -202,18 +202,54 @@ function openAttachmentEdit(field, index) {
   document.getElementById("attachmentEditModal").classList.remove("hidden");
 }
 function renderCategoryFields(category) {
+ function renderCategoryFields(category) {
   if (category === "Topic") {
-    categoryFields.innerHTML = '<label>Title: <input type="text" id="fieldTitle"></label>' +
+    categoryFields.innerHTML =
+      '<label>Title: <input type="text" id="fieldTitle"></label>' +
       '<label>Essential Understanding: <textarea id="fieldEU" rows="3"></textarea></label>' +
-      '<label>Objectives (one per line): <textarea id="fieldObjectives" rows="3"></textarea></label>' +
-      '<div class="resource-section"><div class="resource-header"><strong>Quiz:</strong><button type="button" class="btn-add" onclick="openResourcePopout(\'quiz\')">+</button></div><div id="quizPreview" class="resource-list"></div></div>' +
-      '<div class="resource-section"><div class="resource-header"><strong>PowerPoint:</strong><button type="button" class="btn-add" onclick="openResourcePopout(\'powerpoint\')">+</button></div><div id="powerpointPreview" class="resource-list"></div></div>' +
-      '<div class="resource-section"><div class="resource-header"><strong>Notes:</strong><button type="button" class="btn-add" onclick="openResourcePopout(\'notes\')">+</button></div><div id="notesPreview" class="resource-list"></div></div>' +
-      '<div class="resource-section"><div class="resource-header"><strong>Task:</strong><button type="button" class="btn-add" onclick="openResourcePopout(\'task\')">+</button></div><div id="taskPreview" class="resource-list"></div></div>' +
-      '<div class="resource-section"><div class="resource-header"><strong>Videos:</strong><button type="button" class="btn-add" onclick="openResourcePopout(\'videos\')">+</button></div><div id="videosPreview" class="resource-list"></div></div>';
+      '<label>Objectives (one per line): <textarea id="fieldObjectives" rows="4"></textarea></label>' +
+
+      '<div class="resource-section">' +
+        '<h4>Quiz</h4>' +
+        '<button type="button" class="addResourceBtn" data-field="quiz">Add Quiz Resource</button>' +
+        '<div id="quizPreview" class="resource-preview"></div>' +
+      '</div>' +
+
+      '<div class="resource-section">' +
+        '<h4>PowerPoint</h4>' +
+        '<button type="button" class="addResourceBtn" data-field="powerpoint">Add PowerPoint</button>' +
+        '<div id="powerpointPreview" class="resource-preview"></div>' +
+      '</div>' +
+
+      '<div class="resource-section">' +
+        '<h4>Notes</h4>' +
+        '<button type="button" class="addResourceBtn" data-field="notes">Add Notes</button>' +
+        '<div id="notesPreview" class="resource-preview"></div>' +
+      '</div>' +
+
+      '<div class="resource-section">' +
+        '<h4>Task</h4>' +
+        '<button type="button" class="addResourceBtn" data-field="task">Add Task</button>' +
+        '<div id="taskPreview" class="resource-preview"></div>' +
+      '</div>' +
+
+      '<div class="resource-section">' +
+        '<h4>Videos</h4>' +
+        '<button type="button" class="addResourceBtn" data-field="videos">Add Video</button>' +
+        '<div id="videosPreview" class="resource-preview"></div>' +
+      '</div>';
+    
+    document.querySelectorAll(".addResourceBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const field = btn.getAttribute("data-field");
+        openResourcePopout(field);
+      });
+    });
+
     refreshResourcePreviews();
   } else if (category === "No Students") {
-    categoryFields.innerHTML = '<label>Reason: <textarea id="fieldReason"></textarea></label>';
+    categoryFields.innerHTML =
+      '<label>Reason: <textarea id="fieldReason" rows="3"></textarea></label>';
   } else {
     categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
