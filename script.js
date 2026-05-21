@@ -246,17 +246,17 @@ function refreshResourcePreviews() {
 function renderCategoryFields(category) {
   if (category === "Topic") {
     categoryFields.innerHTML = `
-      <label>
+      abel>
         Title:
         <input type="text" id="fieldTitle">
       </label>
 
-      <label>
+      abel>
         Essential Understanding:
         <textarea id="fieldEU" rows="3"></textarea>
       </label>
 
-      <label>
+      abel>
         Objectives (one per line):
         <textarea id="fieldObjectives" rows="4"></textarea>
       </label>
@@ -292,18 +292,17 @@ function renderCategoryFields(category) {
       </div>
     `;
     refreshResourcePreviews();
+  } else if (category === "No Students") {
+    categoryFields.innerHTML = `
+      abel>
+        Reason:
+        <textarea id="fieldReason" rows="3"></textarea>
+      </label>
+    `;
   } else {
- } else if (category === "No Students") {
-  categoryFields.innerHTML = `
-    abel>
-      Reason:
-      <textarea id="fieldReason" rows="3"></textarea>
-    </label>
-  `;
-} else {
-  categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
-}
+    categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
   }
+}
 }
 
 function openItemPopout(dateStr) {
