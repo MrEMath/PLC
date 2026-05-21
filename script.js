@@ -350,19 +350,21 @@ function renderCalendar() {
         cell.classList.remove("drag-over");
       });
       cell.addEventListener("drop", async (e) => {
-        e.preventDefault();
-        cell.classList.remove("drag-over");
-        const itemId = e.dataTransfer.getData("itemId");
-        const draggedItem = calendarItems.find(it => it.id === itemId);
-        if (!draggedItem || draggedItem.date === dateStr) return;
-        draggedItem.date = dateStr;
-        try {
-          await saveCalendarItem(draggedItem);
-          renderCalendar();
-        } catch (err) {
-          alert("Failed to move item: " + err.message);
-        }
-      });
+  e.preventDefault();
+  cell.classList.remove("drag-over");
+  const targetDate = dateStr;
+  const itemId = e.dataTransfer.getData("itemId");
+  const draggedItem = calendarItems.find(it => it.id === itemId);
+  if (!draggedItem || draggedItem.date === targetDate) return;
+  draggedItem.date = targetDate;
+  try {
+    await saveCalendarItem(draggedItem);
+    renderCalendar();
+  } catch (err) {
+    console.error("Drop save error:", err);
+    alert("Failed to move item: " + err.message);
+  }
+});
       while (currentDate <= daysInMonth) {
         const jsDay = new Date(year, month, currentDate).getDay();
         if (jsDay >= 1 && jsDay <= 5) break;
