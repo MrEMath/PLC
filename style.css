@@ -11,6 +11,10 @@ body {
   background: #000000;
   color: white;
 }
+.calendar-cell.drag-over {
+  outline: 2px dashed #1d4ed8;
+  background-color: rgba(29, 78, 216, 0.08);
+}
 .calendar-brand {
   display: flex;
   align-items: center;
