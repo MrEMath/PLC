@@ -200,18 +200,18 @@ function openAttachmentEdit(field, index) {
 function renderCategoryFields(category) {
   if (category === "Topic") {
     categoryFields.innerHTML =
-      '<div class="field-group">' +
-        'abel for="fieldTitle">Title:</label>' +
-        '<input type="text" id="fieldTitle">' +
-      '</div>' +
-      '<div class="field-group">' +
-        'abel for="fieldEU">Essential Understanding:</label>' +
-        '<textarea id="fieldEU" rows="3"></textarea>' +
-      '</div>' +
-      '<div class="field-group">' +
-        'abel for="fieldObjectives">Objectives (one per line):</label>' +
-        '<textarea id="fieldObjectives" rows="3"></textarea>' +
-      '</div>' +
+     '<div class="field-group">' +
+  '<b>Title:</b>' +
+  '<input type="text" id="fieldTitle">' +
+'</div>' +
+'<div class="field-group">' +
+  '<b>Essential Understanding:</b>' +
+  '<textarea id="fieldEU" rows="3"></textarea>' +
+'</div>' +
+'<div class="field-group">' +
+  '<b>Objectives (one per line):</b>' +
+  '<textarea id="fieldObjectives" rows="3"></textarea>' +
+'</div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">Quiz:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'quiz\')">+</button></div><div id="quizPreview" class="resource-preview"></div></div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">PowerPoint:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'powerpoint\')">+</button></div><div id="powerpointPreview" class="resource-preview"></div></div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">Notes:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'notes\')">+</button></div><div id="notesPreview" class="resource-preview"></div></div>' +
@@ -220,7 +220,7 @@ function renderCategoryFields(category) {
     refreshResourcePreviews();
   } else if (category === "No Students") {
     categoryFields.innerHTML =
-      '<div class="field-group">abel for="fieldReason">Reason:</label><textarea id="fieldReason" rows="3"></textarea></div>';
+     '<div class="field-group"><b>Reason:</b><textarea id="fieldReason" rows="3"></textarea></div>';
   } else {
     categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
