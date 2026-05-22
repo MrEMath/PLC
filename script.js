@@ -247,11 +247,27 @@ function renderCategoryFields(category) {
       '<div class="field-group"><b>Title:</b><input type="text" id="fieldTitle"></div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">Links:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'links\')">+</button></div><div id="linksPreview" class="resource-preview"></div></div>';
     refreshResourcePreviews();
+  } else if (category === 'HawkMastery') {
+    container.innerHTML = `
+      <label>
+        Title:
+        <input type="text" id="hawkTitle" value="${existingData.title || ''}">
+      </label>
+      <label>
+        Links:
+        <input type="text" id="hawkLinks" value="${existingData.links || ''}">
+      </label>
+    `;
   } else {
     categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
 }
-
+if (itemCategory) {
+  itemCategory.addEventListener("change", (e) => {
+    const cat = e.target.value;
+    renderCategoryFields(cat, {}); // you can plug in existingData when editing
+  });
+}
 function openItemPopout(dateStr) {
   editingItemId = null;
   currentEditingDate = dateStr;
