@@ -47,7 +47,7 @@ const CATEGORY_TEXT_COLORS = {
   "CPA": "#ffffff",
   "Benchmark": "#ffffff",
   "Diagnostic": "#000000",
-  "HawkMastery": "#000000"
+  "HawkMastery": "#ffffff"
 };
 
 let currentEditingDate = null;
@@ -563,7 +563,8 @@ function renderCalendar() {
         plusBtn.textContent = "+";
         plusBtn.addEventListener("click", () => openItemPopout(dateStr));
         cell.appendChild(plusBtn);
-        const itemsForDay = calendarItems.filter(item => item.date === dateStr);
+        
+const itemsForDay = calendarItems.filter(item => item.date === dateStr);
 
 itemsForDay
   .filter(item => item.category !== "HawkMastery")
@@ -573,43 +574,46 @@ itemsForDay
     itemBtn.className = "calendarItemBtn";
     itemBtn.draggable = true;
     itemBtn.addEventListener("dragstart", (e) => { e.dataTransfer.setData("itemId", item.id); });
+
     itemBtn.textContent = item.category === "No Students"
       ? (item.reason || "No Students")
       : (item.title || item.category || "Item");
+
     const color = CATEGORY_COLORS[item.category];
     if (color) {
       itemBtn.style.backgroundColor = color;
       itemBtn.style.borderColor = color;
       itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
     }
+
     itemBtn.addEventListener("click", () => {
       document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
       itemBtn.classList.add("selected");
       showDetails(item.id);
     });
     itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+
     cell.appendChild(itemBtn);
   });
 
-const hawkItems = calendarItems.filter(item =>
-  item.category === "HawkMastery" &&
-  isDateInRange(dateStr, item.rangeStart || item.date, item.rangeEnd || item.date)
-);
-
-hawkItems.forEach(item => {
+const hawkItemsForDay = calendarItems.filter(item => {
+  if (item.category !== "HawkMastery") return false;
   const start = item.rangeStart || item.date;
-  if (dateStr !== start) return;
+  const end = item.rangeEnd || item.date;
+  return isDateInRange(dateStr, start, end);
+});
 
-  const startDate = new Date(start);
-  const endDate = new Date(item.rangeEnd || item.date);
-  const spanDays = Math.max(1, (endDate - startDate) / (1000 * 60 * 60 * 24) + 1);
+hawkItemsForDay.forEach(item => {
+  const start = item.rangeStart || item.date;
+  const isStartDay = (dateStr === start);
 
   const itemBtn = document.createElement("button");
   itemBtn.type = "button";
-  itemBtn.className = "calendarItemBtn hawk-span";
-  itemBtn.textContent = item.title || "HawkMastery";
+  itemBtn.className = "calendarItemBtn hawk-multi";
   itemBtn.draggable = true;
   itemBtn.addEventListener("dragstart", (e) => { e.dataTransfer.setData("itemId", item.id); });
+
+  itemBtn.textContent = isStartDay ? (item.title || "HawkMastery") : "↔";
 
   const color = CATEGORY_COLORS[item.category];
   if (color) {
@@ -624,8 +628,6 @@ hawkItems.forEach(item => {
     showDetails(item.id);
   });
   itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
-
-  itemBtn.style.setProperty("--hawk-span-days", spanDays);
 
   cell.appendChild(itemBtn);
 });
