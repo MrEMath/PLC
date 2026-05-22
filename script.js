@@ -632,24 +632,30 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
     if (rowMonday && rowFriday) {
       const weekStart = new Date(rowMonday);
       const weekEnd = new Date(rowFriday);
-
-      const hawkItemsForWeek.forEach(item => {
-
+const hawkItemsForWeek = calendarItems.filter(item => {
+    if (item.category !== "HawkMastery") return false;
+    const start = new Date(item.rangeStart || item.date);
+    const end = new Date(item.rangeEnd || item.date);
+    return end >= weekStart && start <= weekEnd;
+  });
+     hawkItemsForWeek.forEach(item => {
+  // true event dates (strings)
   const eventStart = item.rangeStart || item.date;
   const eventEnd = item.rangeEnd || item.date;
 
-  
+  // clamp event to this row's Monday–Friday
   const clampedStartDate = clampDateToWeekdayRange(eventStart, weekStart, weekEnd);
   const clampedEndDate = clampDateToWeekdayRange(eventEnd, weekStart, weekEnd);
 
-
+  // ensure we are working with Date objects
   const startDate = new Date(clampedStartDate);
   const endDate = new Date(clampedEndDate);
 
- 
-  const rawStartIndex = startDate.getDay() - 1; 
-  const rawEndIndex = endDate.getDay() - 1;     
+  // getDay(): Monday=1 ... Friday=5
+  const rawStartIndex = startDate.getDay() - 1; // 0..4
+  const rawEndIndex = endDate.getDay() - 1;     // 0..4
 
+  // clamp into [0,4] in case of any edges
   const startCol = Math.max(0, Math.min(4, rawStartIndex));
   const endCol = Math.max(0, Math.min(4, rawEndIndex));
 
@@ -674,7 +680,7 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
   });
   itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
 
-  const totalCols = 5; 
+  const totalCols = 5;  // Monday–Friday
   const leftPercent = (startCol / totalCols) * 100;
   const widthPercent = (spanColumns / totalCols) * 100;
 
