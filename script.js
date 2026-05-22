@@ -9,7 +9,6 @@ const monthSelect = document.getElementById("monthSelect");
 const yearSelect = document.getElementById("yearSelect");
 const calendarGrid = document.getElementById("calendarGrid");
 const detailTitle = document.getElementById("detailTitle");
-
 const detailObjectives = document.getElementById("detailObjectives");
 const detailQuiz = document.getElementById("detailQuiz");
 const detailPpt = document.getElementById("detailPpt");
@@ -38,6 +37,7 @@ const CATEGORY_COLORS = {
   "Benchmark": "#F94144",
   "Diagnostic": "#F9C74F"
 };
+
 const CATEGORY_TEXT_COLORS = {
   "Topic": "#ffffff",
   "Quiz": "#000000",
@@ -47,14 +47,14 @@ const CATEGORY_TEXT_COLORS = {
   "Benchmark": "#ffffff",
   "Diagnostic": "#000000"
 };
+
 let currentEditingDate = null;
 let editingItemId = null;
 let currentResourceField = null;
-
 let pendingResources = { quiz: [], powerpoint: [], notes: [], task: [], videos: [], links: [] };
 
 function resetPendingResources() {
-  pendingResources = { quiz: [], powerpoint: [], notes: [], task: [], videos: [] , links: []};
+  pendingResources = { quiz: [], powerpoint: [], notes: [], task: [], videos: [], links: [] };
 }
 
 function initMonthYear() {
@@ -78,7 +78,8 @@ function initMonthYear() {
 
 function clearDetails() {
   detailTitle.textContent = "";
-  detailEU.textContent = "";
+  const detailEU = document.getElementById("detailEU");
+  if (detailEU) detailEU.textContent = "";
   detailObjectives.innerHTML = "";
   detailQuiz.innerHTML = "";
   detailPpt.innerHTML = "";
@@ -87,17 +88,27 @@ function clearDetails() {
   detailVideos.innerHTML = "";
   const dr = document.getElementById("detailReason");
   if (dr) dr.textContent = "";
-  const drRow = document.getElementById("detailReasonRow");
-  if (drRow) drRow.style.display = "none";
+  const dl = document.getElementById("detailLinks");
+  if (dl) dl.innerHTML = "";
+  const dt = document.getElementById("detailTopic");
+  if (dt) dt.textContent = "";
 }
 
 async function saveCalendarItem(item) {
   const payload = {
-    id: item.id, date: item.date, category: item.category || "",
-    title: item.title || "", essential_understanding: item.essentialUnderstanding || "",
-    objectives: item.objectives || "", quiz: item.quiz || null,
-    powerpoint: item.powerpoint || null, notes: item.notes || null,
-    task: item.task || null, videos: item.videos || null, links: item.links || null, reason: item.reason || ""
+    id: item.id,
+    date: item.date,
+    category: item.category || "",
+    title: item.title || "",
+    essential_understanding: item.essentialUnderstanding || "",
+    objectives: item.objectives || "",
+    quiz: item.quiz || null,
+    powerpoint: item.powerpoint || null,
+    notes: item.notes || null,
+    task: item.task || null,
+    videos: item.videos || null,
+    links: item.links || null,
+    reason: item.reason || ""
   };
   const { data, error } = await supabaseClient.from("calendar_items").upsert(payload).select();
   if (error) throw error;
@@ -108,13 +119,18 @@ async function loadCalendarItems() {
   const { data, error } = await supabaseClient.from("calendar_items").select("*").order("date", { ascending: true });
   if (error) { console.error("Error loading:", error); return; }
   calendarItems = (data || []).map(row => ({
-    id: row.id, date: row.date, category: row.category || "", title: row.title || "",
-    essentialUnderstanding: row.essential_understanding || "", objectives: row.objectives || "",
+    id: row.id,
+    date: row.date,
+    category: row.category || "",
+    title: row.title || "",
+    essentialUnderstanding: row.essential_understanding || "",
+    objectives: row.objectives || "",
     quiz: Array.isArray(row.quiz) ? row.quiz : [],
     powerpoint: Array.isArray(row.powerpoint) ? row.powerpoint : [],
     notes: Array.isArray(row.notes) ? row.notes : [],
     task: Array.isArray(row.task) ? row.task : [],
-    videos: Array.isArray(row.videos) ? row.videos : [], links: Array.isArray(row.links) ? row.links : [],
+    videos: Array.isArray(row.videos) ? row.videos : [],
+    links: Array.isArray(row.links) ? row.links : [],
     reason: row.reason || ""
   }));
   renderCalendar();
@@ -126,13 +142,15 @@ async function deleteCalendarItem(itemId) {
 }
 
 async function uploadResourceFiles(files, fieldName, altText = "") {
-  const folderMap = { quiz: "quizzes", powerpoint: "powerpoints", notes: "notes", task: "tasks", videos: "videos" };
+  const folderMap = { quiz: "quizzes", powerpoint: "powerpoints", notes: "notes", task: "tasks", videos: "videos", links: "links" };
   const folder = folderMap[fieldName] || "misc";
   const uploaded = [];
   for (const file of files) {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
     const filePath = folder + "/" + Date.now() + "-" + safeName;
-    const { data, error } = await supabaseClient.storage.from(STORAGE_BUCKET).upload(filePath, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+    const { data, error } = await supabaseClient.storage.from(STORAGE_BUCKET).upload(filePath, file, {
+      cacheControl: "3600", upsert: false, contentType: file.type
+    });
     if (error) throw error;
     uploaded.push({ name: file.name, path: data.path, type: file.type, size: file.size, url: null, altText });
   }
@@ -149,8 +167,13 @@ function toggleResourceInput(type) {
   const linkFields = document.getElementById("resourceLinkFields");
   const fileFields = document.getElementById("resourceFileFields");
   if (!linkFields || !fileFields) return;
-  if (type === "link") { linkFields.style.display = "block"; fileFields.style.display = "none"; }
-  else { linkFields.style.display = "none"; fileFields.style.display = "block"; }
+  if (type === "link") {
+    linkFields.style.display = "block";
+    fileFields.style.display = "none";
+  } else {
+    linkFields.style.display = "none";
+    fileFields.style.display = "block";
+  }
 }
 
 function refreshResourcePreviews() {
@@ -186,6 +209,7 @@ function refreshResourcePreviews() {
     });
   });
 }
+
 let editingAttachmentField = null;
 let editingAttachmentIndex = null;
 
@@ -197,31 +221,20 @@ function openAttachmentEdit(field, index) {
   if (altInput) altInput.value = fileObj.altText || "";
   document.getElementById("attachmentEditModal").classList.remove("hidden");
 }
+
 function renderCategoryFields(category) {
   if (category === "Topic") {
     categoryFields.innerHTML =
-     '<div class="field-group">' +
-  '<b>Title:</b>' +
-  '<input type="text" id="fieldTitle">' +
-'</div>' +
-'<div class="field-group">' +
-  '<b>Essential Understanding:</b>' +
-  '<textarea id="fieldEU" rows="3"></textarea>' +
-'</div>' +
-'<div class="field-group">' +
-  '<b>Objectives (one per line):</b>' +
-  '<textarea id="fieldObjectives" rows="3"></textarea>' +
-'</div>' +
+      '<div class="field-group"><b>Title:</b><input type="text" id="fieldTitle"></div>' +
+      '<div class="field-group"><b>Essential Understanding:</b><textarea id="fieldEU" rows="3"></textarea></div>' +
+      '<div class="field-group"><b>Objectives (one per line):</b><textarea id="fieldObjectives" rows="3"></textarea></div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">Quiz:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'quiz\')">+</button></div><div id="quizPreview" class="resource-preview"></div></div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">PowerPoint:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'powerpoint\')">+</button></div><div id="powerpointPreview" class="resource-preview"></div></div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">Notes:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'notes\')">+</button></div><div id="notesPreview" class="resource-preview"></div></div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">Task:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'task\')">+</button></div><div id="taskPreview" class="resource-preview"></div></div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">Videos:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'videos\')">+</button></div><div id="videosPreview" class="resource-preview"></div></div>';
     refreshResourcePreviews();
-} else if (category === "No Students") {
-    categoryFields.innerHTML =
-      '<div class="field-group"><b>Reason:</b><input type="text" id="fieldReason"></div>';
-  } else if (category === "No School") {
+  } else if (category === "No Students" || category === "No School") {
     categoryFields.innerHTML =
       '<div class="field-group"><b>Reason:</b><input type="text" id="fieldReason"></div>';
   } else if (category === "Quiz") {
@@ -238,6 +251,7 @@ function renderCategoryFields(category) {
     categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
 }
+
 function openItemPopout(dateStr) {
   editingItemId = null;
   currentEditingDate = dateStr;
@@ -259,328 +273,14 @@ function openEditItemPopout(itemId) {
     powerpoint: Array.isArray(item.powerpoint) ? [...item.powerpoint] : [],
     notes: Array.isArray(item.notes) ? [...item.notes] : [],
     task: Array.isArray(item.task) ? [...item.task] : [],
-        videos: Array.isArray(item.videos) ? [...item.videos] : [],
+    videos: Array.isArray(item.videos) ? [...item.videos] : [],
     links: Array.isArray(item.links) ? [...item.links] : []
-};
+  };
   itemDateDisplay.textContent = "Date: " + item.date;
   itemCategory.value = item.category || "Topic";
-      itemModal.classList.remove("hidden");
+  renderCategoryFields(item.category || "Topic");
+  if (itemDeleteBtn) itemDeleteBtn.style.display = "inline-block";
+  itemModal.classList.remove("hidden");
   const titleEl = document.getElementById("fieldTitle");
   const euEl = document.getElementById("fieldEU");
-  const objectivesEl = document.getElementById("fieldObjectives");
-  const reasonEl = document.getElementById("fieldReason");
-  if (titleEl) titleEl.value = item.title || "";
-  if (euEl) euEl.value = item.essentialUnderstanding || "";
-  if (objectivesEl) objectivesEl.value = item.objectives || "";
-  if (reasonEl) reasonEl.value = item.reason || "";
-  refreshResourcePreviews();
-}
-
-function closeItemPopout() {
-  itemModal.classList.add("hidden");
-}
-
-function openResourcePopout(field) {
-  currentResourceField = field;
-  const linkRadio = document.querySelector("input[name='resType'][value='link']");
-  if (linkRadio) linkRadio.checked = true;
-  toggleResourceInput("link");
-  const fileInput = document.getElementById("resourceFileInput");
-  const selectedFileName = document.getElementById("selectedFileName");
-  const linkInput = document.getElementById("resourceLinkInput");
-  const altInput = document.getElementById("resourceAltInput");
-  if (fileInput) fileInput.value = "";
-  if (selectedFileName) selectedFileName.textContent = "";
-  if (linkInput) linkInput.value = "";
-  if (altInput) altInput.value = "";
-  resourceModal.classList.remove("hidden");
-}
-
-function closeResourcePopout() {
-  resourceModal.classList.add("hidden");
-}
-
-async function showDetails(itemId) {
-  const item = calendarItems.find(it => it.id === itemId);
-  if (!item) return;
-  clearDetails();
-  const cat = item.category;
-  const allRows = {
-    title:      document.getElementById("detailTitleRow"),
-    eu:         document.getElementById("detailEURow"),
-    objectives: document.getElementById("detailObjectivesRow"),
-    quiz:       document.getElementById("detailQuizRow"),
-    ppt:        document.getElementById("detailPptRow"),
-    notes:      document.getElementById("detailNotesRow"),
-    tasks:      document.getElementById("detailTasksRow"),
-    videos:     document.getElementById("detailVideosRow"),
-    reason:     document.getElementById("detailReasonRow"),
-    links:      document.getElementById("detailLinksRow"),
-    topic:      document.getElementById("detailTopicRow")
-  };
-  // Hide all rows first
-  Object.values(allRows).forEach(r => { if (r) r.style.display = "none"; });
-
-  if (cat === "Topic") {
-    ["title","eu","objectives","quiz","ppt","notes","tasks","videos"].forEach(k => { if (allRows[k]) allRows[k].style.display = "block"; });
-    detailTitle.textContent = item.title || "";
-    detailEU.textContent = item.essentialUnderstanding || "";
-    if (item.objectives) {
-      item.objectives.split("\n").filter(Boolean).forEach(obj => {
-        const li = document.createElement("li");
-        li.textContent = obj;
-        detailObjectives.appendChild(li);
-      });
-    }
-  } else if (cat === "No Students" || cat === "No School") {
-    if (allRows.reason) allRows.reason.style.display = "block";
-    const detailReason = document.getElementById("detailReason");
-    if (detailReason) detailReason.textContent = item.reason || "";
-  } else if (cat === "Quiz") {
-    if (allRows.topic) allRows.topic.style.display = "block";
-    if (allRows.links) allRows.links.style.display = "block";
-    const detailTopic = document.getElementById("detailTopic");
-    if (detailTopic) detailTopic.textContent = item.title || "";
-  } else if (cat === "CPA" || cat === "Benchmark" || cat === "Diagnostic") {
-    if (allRows.title) allRows.title.style.display = "block";
-    if (allRows.links) allRows.links.style.display = "block";
-    detailTitle.textContent = item.title || "";
-  }
-async function renderFileLinks(container, items) {
-    if (!container || !Array.isArray(items) || !items.length) return;
-    for (const fileObj of items) {
-      const wrapper = document.createElement("div");
-      wrapper.style.marginBottom = "0.75rem";
-      if (fileObj.type === "link" && fileObj.url) {
-        const a = document.createElement("a");
-        a.textContent = fileObj.altText && fileObj.altText.trim() ? fileObj.altText : (fileObj.name || fileObj.url);
-        a.href = fileObj.url;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        wrapper.appendChild(a);
-      } else if (fileObj.path) {
-        const a = document.createElement("a");
-        a.textContent = fileObj.altText && fileObj.altText.trim() ? fileObj.altText : (fileObj.name || "Open file");
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.href = "#";
-        try {
-          const signedUrl = await getSignedFileUrl(fileObj.path);
-          a.href = signedUrl;
-        } catch (err) {
-          a.textContent = (fileObj.name || "File") + " (unavailable)";
-        }
-        wrapper.appendChild(a);
-      }
-      container.appendChild(wrapper);
-    }
-  }
-  if (cat === "Topic") {
-    await renderFileLinks(detailQuiz, item.quiz);
-    await renderFileLinks(detailPpt, item.powerpoint);
-    await renderFileLinks(detailNotes, item.notes);
-    await renderFileLinks(detailTasks, item.task);
-    await renderFileLinks(detailVideos, item.videos);
-  } else if (cat === "Quiz" || cat === "CPA" || cat === "Benchmark" || cat === "Diagnostic") {
-    const detailLinksEl = document.getElementById("detailLinks");
-    await renderFileLinks(detailLinksEl, item.links);
-  }
-}
-const month = parseInt(monthSelect.value, 10);
-  const year = parseInt(yearSelect.value, 10);
-  calendarGrid.innerHTML = "";
-  const headerRow = document.createElement("div");
-  headerRow.className = "calendar-row header-row";
-  ["Monday","Tuesday","Wednesday","Thursday","Friday"].forEach(dayName => {
-    const headerCell = document.createElement("div");
-    headerCell.className = "calendar-cell header-cell";
-    headerCell.textContent = dayName;
-    headerRow.appendChild(headerCell);
-  });
-  calendarGrid.appendChild(headerRow);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  let currentDate = 1;
-  for (let week = 0; week < 6; week++) {
-    const row = document.createElement("div");
-    row.className = "calendar-row";
-    for (let weekday = 1; weekday <= 5; weekday++) {
-      const cell = document.createElement("div");
-      cell.className = "calendar-cell";
-      
-      while (currentDate <= daysInMonth) {
-        const jsDay = new Date(year, month, currentDate).getDay();
-        if (jsDay >= 1 && jsDay <= 5) break;
-        currentDate++;
-      }
-      if (currentDate <= daysInMonth) {
-        const dateStr = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(currentDate).padStart(2, "0");
-        cell.addEventListener("dragover", (e) => {
-  e.preventDefault();
-  cell.classList.add("drag-over");
-});
-cell.addEventListener("dragleave", () => {
-  cell.classList.remove("drag-over");
-});
-cell.addEventListener("drop", async (e) => {
-  e.preventDefault();
-  cell.classList.remove("drag-over");
-  const itemId = e.dataTransfer.getData("itemId");
-  const draggedItem = calendarItems.find(it => it.id === itemId);
-  if (!draggedItem || draggedItem.date === dateStr) return;
-  draggedItem.date = dateStr;
-  try {
-    await saveCalendarItem(draggedItem);
-    renderCalendar();
-  } catch (err) {
-    console.error("Drop save error:", err);
-    alert("Failed to move item: " + err.message);
-  }
-});
-        const dayLabel = document.createElement("div");
-        dayLabel.className = "day-label";
-        dayLabel.textContent = currentDate;
-        cell.appendChild(dayLabel);
-        const plusBtn = document.createElement("button");
-        plusBtn.type = "button";
-        plusBtn.className = "addItemBtn";
-        plusBtn.textContent = "+";
-        plusBtn.addEventListener("click", () => openItemPopout(dateStr));
-        cell.appendChild(plusBtn);
-        const itemsForDay = calendarItems.filter(item => item.date === dateStr);
-        itemsForDay.forEach(item => {
-          const itemBtn = document.createElement("button");
-          itemBtn.type = "button";
-          itemBtn.className = "calendarItemBtn";
-          itemBtn.draggable = true;
-          itemBtn.addEventListener("dragstart", (e) => {
-            e.dataTransfer.setData("itemId", item.id);
-          });
-          itemBtn.textContent = item.category === "No Students" ? (item.reason || "No Students") : (item.title || item.category || "Item");
-          const color = CATEGORY_COLORS[item.category];
-          if (color) {
-            itemBtn.style.backgroundColor = color;
-            itemBtn.style.borderColor = color;
-            itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
-          }
-          itemBtn.addEventListener("click", () => {
-            document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
-            itemBtn.classList.add("selected");
-            showDetails(item.id);
-          });
-          itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
-          cell.appendChild(itemBtn);
-        });
-        currentDate++;
-      }
-      row.appendChild(cell);
-    }
-    calendarGrid.appendChild(row);
-  }
-}
-
-itemSaveBtn.addEventListener("click", async () => {
-  const category = itemCategory.value;
-  const title = document.getElementById("fieldTitle") ? document.getElementById("fieldTitle").value.trim() : "";
-  const essentialUnderstanding = document.getElementById("fieldEU") ? document.getElementById("fieldEU").value.trim() : "";
-  const objectives = document.getElementById("fieldObjectives") ? document.getElementById("fieldObjectives").value.trim() : "";
-  const reason = document.getElementById("fieldReason") ? document.getElementById("fieldReason").value.trim() : "";
-  const item = {
-    id: editingItemId || crypto.randomUUID(),
-    date: currentEditingDate,
-    category, title, essentialUnderstanding, objectives, reason,
-    quiz: pendingResources.quiz || [],
-    powerpoint: pendingResources.powerpoint || [],
-    notes: pendingResources.notes || [],
-    task: pendingResources.task || [],
-    videos: pendingResources.videos || [], links: pendingResources.links || []
-  };
-  const existingIndex = calendarItems.findIndex(x => x.id === item.id);
-  if (existingIndex >= 0) { calendarItems[existingIndex] = item; } else { calendarItems.push(item); }
-  try {
-    await saveCalendarItem(item);
-    closeItemPopout();
-    renderCalendar();
-  } catch (error) {
-    console.error("Error saving item:", error);
-    alert("Failed to save event to Supabase.");
-  }
-});
-
-if (resourceSaveBtn) {
-  resourceSaveBtn.addEventListener("click", async () => {
-    const selectedType = document.querySelector("input[name='resType']:checked");
-    const linkInput = document.getElementById("resourceLinkInput");
-    const fileInput = document.getElementById("resourceFileInput");
-    const altInput = document.getElementById("resourceAltInput");
-    if (!selectedType || !currentResourceField) { closeResourcePopout(); return; }
-    const type = selectedType.value;
-    const linkValue = linkInput ? linkInput.value.trim() : "";
-    const altText = altInput ? altInput.value.trim() : "";
-    try {
-      if (type === "link") {
-        if (!linkValue) { closeResourcePopout(); return; }
-        pendingResources[currentResourceField].push({ name: linkValue, path: null, type: "link", size: null, url: linkValue, altText });
-      } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
-        const uploadedFiles = await uploadResourceFiles(fileInput.files, currentResourceField, altText);
-        pendingResources[currentResourceField].push(...uploadedFiles);
-      }
-      refreshResourcePreviews();
-      if (linkInput) linkInput.value = "";
-      if (fileInput) fileInput.value = "";
-      if (altInput) altInput.value = "";
-      const sfn = document.getElementById("selectedFileName");
-      if (sfn) sfn.textContent = "";
-      closeResourcePopout();
-    } catch (err) {
-      alert("Resource upload failed: " + err.message);
-    }
-  });
-}
-
-if (resourceCancelBtn) { resourceCancelBtn.addEventListener("click", closeResourcePopout); }
-
-if (itemDeleteBtn) {
-  itemDeleteBtn.addEventListener("click", async () => {
-    if (!editingItemId) return;
-    if (!confirm("Delete this calendar item?")) return;
-    try {
-      await deleteCalendarItem(editingItemId);
-      const index = calendarItems.findIndex(item => item.id === editingItemId);
-      if (index !== -1) calendarItems.splice(index, 1);
-      editingItemId = null;
-      closeItemPopout();
-      renderCalendar();
-      clearDetails();
-    } catch (error) {
-      console.error("Error deleting item:", error);
-      alert("Failed to delete event from Supabase.");
-    }
-  });
-}
-
-itemCancelBtn.addEventListener("click", closeItemPopout);
-itemCategory.addEventListener("change", () => renderCategoryFields(itemCategory.value));
-monthSelect.addEventListener("change", renderCalendar);
-yearSelect.addEventListener("change", renderCalendar);
-
-document.addEventListener("change", (e) => {
-  if (e.target && e.target.id === "resourceFileInput") {
-    const sfn = document.getElementById("selectedFileName");
-    if (sfn) sfn.textContent = e.target.files.length ? e.target.files[0].name : "";
-  }
-});
-document.getElementById("attachmentSaveBtn").addEventListener("click", () => {
-  const altInput = document.getElementById("attachmentAltInput");
-  if (editingAttachmentField !== null && editingAttachmentIndex !== null) {
-    pendingResources[editingAttachmentField][editingAttachmentIndex].altText =
-      altInput ? altInput.value.trim() : "";
-    refreshResourcePreviews();
-  }
-  document.getElementById("attachmentEditModal").classList.add("hidden");
-});
-
-document.getElementById("attachmentCancelBtn").addEventListener("click", () => {
-  document.getElementById("attachmentEditModal").classList.add("hidden");
-});
-initMonthYear();
-loadCalendarItems();
+  const objectiv
