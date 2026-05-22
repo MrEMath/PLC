@@ -114,7 +114,7 @@ async function loadCalendarItems() {
     powerpoint: Array.isArray(row.powerpoint) ? row.powerpoint : [],
     notes: Array.isArray(row.notes) ? row.notes : [],
     task: Array.isArray(row.task) ? row.task : [],
-    videos: Array.isArray(row.videos) ? row.videos : [], links: Array.isArray(row.links) ? row.links : [] ? row.videos : [],
+    videos: Array.isArray(row.videos) ? row.videos : [], links: Array.isArray(row.links) ? row.links : [],
     reason: row.reason || ""
   }));
   renderCalendar();
@@ -492,7 +492,7 @@ itemSaveBtn.addEventListener("click", async () => {
     powerpoint: pendingResources.powerpoint || [],
     notes: pendingResources.notes || [],
     task: pendingResources.task || [],
-    videos: pendingResources.videos || [], links: pendingResources.links || [] || []
+    videos: pendingResources.videos || [], links: pendingResources.links || []
   };
   const existingIndex = calendarItems.findIndex(x => x.id === item.id);
   if (existingIndex >= 0) { calendarItems[existingIndex] = item; } else { calendarItems.push(item); }
