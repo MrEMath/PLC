@@ -513,10 +513,21 @@ function isDateInRange(dateStr, startStr, endStr) {
   const e = new Date(endStr);
   return d >= s && d <= e;
 }
-function renderCalendar() {
+function toDateParts(dateStr) {
+  const d = new Date(dateStr);
+  return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate(), jsDay: d.getDay() };
+}
+
+function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
+  const d = new Date(dateStr);
+  if (d < weekStart) return new Date(weekStart);
+  if (d > weekEnd) return new Date(weekEnd);
+  return d;
+}function renderCalendar() {
   const month = parseInt(monthSelect.value, 10);
   const year = parseInt(yearSelect.value, 10);
   calendarGrid.innerHTML = "";
+
   const headerRow = document.createElement("div");
   headerRow.className = "calendar-row header-row";
   ["Monday","Tuesday","Wednesday","Thursday","Friday"].forEach(dayName => {
@@ -526,21 +537,34 @@ function renderCalendar() {
     headerRow.appendChild(headerCell);
   });
   calendarGrid.appendChild(headerRow);
+
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   let currentDate = 1;
+
   for (let week = 0; week < 6; week++) {
     const row = document.createElement("div");
     row.className = "calendar-row";
+
+    let rowMonday = null;
+    let rowFriday = null;
+
     for (let weekday = 1; weekday <= 5; weekday++) {
       const cell = document.createElement("div");
       cell.className = "calendar-cell";
+
       while (currentDate <= daysInMonth) {
         const jsDay = new Date(year, month, currentDate).getDay();
         if (jsDay >= 1 && jsDay <= 5) break;
         currentDate++;
       }
+
       if (currentDate <= daysInMonth) {
+        const cellDateObj = new Date(year, month, currentDate);
         const dateStr = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(currentDate).padStart(2, "0");
+
+        if (!rowMonday) rowMonday = new Date(cellDateObj);
+        rowFriday = new Date(cellDateObj);
+
         cell.addEventListener("dragover", (e) => { e.preventDefault(); cell.classList.add("drag-over"); });
         cell.addEventListener("dragleave", () => { cell.classList.remove("drag-over"); });
         cell.addEventListener("drop", async (e) => {
@@ -553,88 +577,110 @@ function renderCalendar() {
           try { await saveCalendarItem(draggedItem); renderCalendar(); }
           catch (err) { console.error("Drop save error:", err); alert("Failed to move item: " + err.message); }
         });
+
         const dayLabel = document.createElement("div");
         dayLabel.className = "day-label";
         dayLabel.textContent = currentDate;
         cell.appendChild(dayLabel);
+
         const plusBtn = document.createElement("button");
         plusBtn.type = "button";
         plusBtn.className = "addItemBtn";
         plusBtn.textContent = "+";
         plusBtn.addEventListener("click", () => openItemPopout(dateStr));
         cell.appendChild(plusBtn);
-        
-const itemsForDay = calendarItems.filter(item => item.date === dateStr);
 
-itemsForDay
-  .filter(item => item.category !== "HawkMastery")
-  .forEach(item => {
-    const itemBtn = document.createElement("button");
-    itemBtn.type = "button";
-    itemBtn.className = "calendarItemBtn";
-    itemBtn.draggable = true;
-    itemBtn.addEventListener("dragstart", (e) => { e.dataTransfer.setData("itemId", item.id); });
+        const itemsForDay = calendarItems.filter(item => item.date === dateStr);
 
-    itemBtn.textContent = item.category === "No Students"
-      ? (item.reason || "No Students")
-      : (item.title || item.category || "Item");
+        itemsForDay.forEach(item => {
+         
+          if (item.category === "HawkMastery") return;
 
-    const color = CATEGORY_COLORS[item.category];
-    if (color) {
-      itemBtn.style.backgroundColor = color;
-      itemBtn.style.borderColor = color;
-      itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
-    }
+          const itemBtn = document.createElement("button");
+          itemBtn.type = "button";
+          itemBtn.className = "calendarItemBtn";
+          itemBtn.draggable = true;
+          itemBtn.addEventListener("dragstart", (e) => { e.dataTransfer.setData("itemId", item.id); });
 
-    itemBtn.addEventListener("click", () => {
-      document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
-      itemBtn.classList.add("selected");
-      showDetails(item.id);
-    });
-    itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+          itemBtn.textContent = item.category === "No Students"
+            ? (item.reason || "No Students")
+            : (item.title || item.category || "Item");
 
-    cell.appendChild(itemBtn);
-  });
+          const color = CATEGORY_COLORS[item.category];
+          if (color) {
+            itemBtn.style.backgroundColor = color;
+            itemBtn.style.borderColor = color;
+            itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
+          }
 
-const hawkItemsForDay = calendarItems.filter(item => {
-  if (item.category !== "HawkMastery") return false;
-  const start = item.rangeStart || item.date;
-  const end = item.rangeEnd || item.date;
-  return isDateInRange(dateStr, start, end);
-});
+          itemBtn.addEventListener("click", () => {
+            document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
+            itemBtn.classList.add("selected");
+            showDetails(item.id);
+          });
+          itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
 
-hawkItemsForDay.forEach(item => {
-  const start = item.rangeStart || item.date;
-  const isStartDay = (dateStr === start);
+          cell.appendChild(itemBtn);
+        });
 
-  const itemBtn = document.createElement("button");
-  itemBtn.type = "button";
-  itemBtn.className = "calendarItemBtn hawk-multi";
-  itemBtn.draggable = true;
-  itemBtn.addEventListener("dragstart", (e) => { e.dataTransfer.setData("itemId", item.id); });
-
-  itemBtn.textContent = isStartDay ? (item.title || "HawkMastery") : "↔";
-
-  const color = CATEGORY_COLORS[item.category];
-  if (color) {
-    itemBtn.style.backgroundColor = color;
-    itemBtn.style.borderColor = color;
-    itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
-  }
-
-  itemBtn.addEventListener("click", () => {
-    document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
-    itemBtn.classList.add("selected");
-    showDetails(item.id);
-  });
-  itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
-
-  cell.appendChild(itemBtn);
-});
         currentDate++;
       }
+
       row.appendChild(cell);
     }
+
+    if (rowMonday && rowFriday) {
+      const weekStart = new Date(rowMonday);
+      const weekEnd = new Date(rowFriday);
+
+      const hawkItemsForWeek = calendarItems.filter(item => {
+        if (item.category !== "HawkMastery") return false;
+        const start = new Date(item.rangeStart || item.date);
+        const end = new Date(item.rangeEnd || item.date);
+        return end >= weekStart && start <= weekEnd;
+      });
+
+      hawkItemsForWeek.forEach(item => {
+        const eventStart = new Date(item.rangeStart || item.date);
+        const eventEnd = new Date(item.rangeEnd || item.date);
+        
+        const clampedStart = clampDateToWeekdayRange(eventStart.toISOString().slice(0,10), weekStart, weekEnd);
+        const clampedEnd = clampDateToWeekdayRange(eventEnd.toISOString().slice(0,10), weekStart, weekEnd);
+
+        const startDayIndex = clampedStart.getDay() - 1; 
+        const endDayIndex = clampedEnd.getDay() - 1;     
+
+        const spanColumns = Math.max(1, endDayIndex - startDayIndex + 1);
+
+        const itemBtn = document.createElement("button");
+        itemBtn.type = "button";
+        itemBtn.className = "calendarItemBtn hawk-span";
+        itemBtn.textContent = item.title || "HawkMastery";
+
+        const color = CATEGORY_COLORS[item.category];
+        if (color) {
+          itemBtn.style.backgroundColor = color;
+          itemBtn.style.borderColor = color;
+          itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
+        }
+
+        itemBtn.addEventListener("click", () => {
+          document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
+          itemBtn.classList.add("selected");
+          showDetails(item.id);
+        });
+        itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+        
+        const leftPercent = (startDayIndex / 5) * 100;
+        const widthPercent = (spanColumns / 5) * 100;
+
+        itemBtn.style.left = leftPercent + "%";
+        itemBtn.style.width = widthPercent + "%";
+
+        row.appendChild(itemBtn);
+      });
+    }
+
     calendarGrid.appendChild(row);
   }
 }
