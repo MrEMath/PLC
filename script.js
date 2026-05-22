@@ -36,6 +36,7 @@ const CATEGORY_COLORS = {
   "CPA": "#F3722C",
   "Benchmark": "#F94144",
   "Diagnostic": "#F9C74F"
+  "HawkMastery": "#242424"
 };
 
 const CATEGORY_TEXT_COLORS = {
@@ -46,6 +47,7 @@ const CATEGORY_TEXT_COLORS = {
   "CPA": "#ffffff",
   "Benchmark": "#ffffff",
   "Diagnostic": "#000000"
+  "HawkMastery": "#000000"
 };
 
 let currentEditingDate = null;
