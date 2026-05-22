@@ -522,11 +522,13 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
   if (d < weekStart) return new Date(weekStart);
   if (d > weekEnd) return new Date(weekEnd);
   return d;
-}function renderCalendar() {
+}
+function renderCalendar() {
   const month = parseInt(monthSelect.value, 10);
   const year = parseInt(yearSelect.value, 10);
   calendarGrid.innerHTML = "";
 
+  // Header row
   const headerRow = document.createElement("div");
   headerRow.className = "calendar-row header-row";
   ["Monday","Tuesday","Wednesday","Thursday","Friday"].forEach(dayName => {
@@ -538,8 +540,14 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
   calendarGrid.appendChild(headerRow);
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  let currentDate = 1;
 
+  // 1) Find the first Monday displayed in the grid
+  // Start at the 1st of the month
+  const firstOfMonth = new Date(year, month, 1);
+  let firstMondayOffset = (firstOfMonth.getDay() + 6) % 7; // 0 = Monday, ... 6 = Sunday
+  const firstMondayDate = new Date(year, month, 1 - firstMondayOffset);
+
+  // 2) Build up to 6 weeks
   for (let week = 0; week < 6; week++) {
     const row = document.createElement("div");
     row.className = "calendar-row";
@@ -547,19 +555,20 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
     let rowMonday = null;
     let rowFriday = null;
 
-    for (let weekday = 1; weekday <= 5; weekday++) {
+    for (let weekdayIndex = 0; weekdayIndex < 5; weekdayIndex++) {
       const cell = document.createElement("div");
       cell.className = "calendar-cell";
 
-      while (currentDate <= daysInMonth) {
-        const jsDay = new Date(year, month, currentDate).getDay();
-        if (jsDay >= 1 && jsDay <= 5) break;
-        currentDate++;
-      }
+      // Date for this cell: firstMonday + (week * 7 + weekdayIndex) days
+      const cellDateObj = new Date(firstMondayDate);
+      cellDateObj.setDate(firstMondayDate.getDate() + week * 7 + weekdayIndex);
 
-      if (currentDate <= daysInMonth) {
-        const cellDateObj = new Date(year, month, currentDate);
-        const dateStr = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(currentDate).padStart(2, "0");
+      const cellMonth = cellDateObj.getMonth();
+      const cellYear = cellDateObj.getFullYear();
+      const cellDay = cellDateObj.getDate();
+
+      if (cellMonth === month && cellYear === year) {
+        const dateStr = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(cellDay).padStart(2, "0");
 
         if (!rowMonday) rowMonday = new Date(cellDateObj);
         rowFriday = new Date(cellDateObj);
@@ -576,9 +585,10 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
           try { await saveCalendarItem(draggedItem); renderCalendar(); }
           catch (err) { console.error("Drop save error:", err); alert("Failed to move item: " + err.message); }
         });
+
         const dayLabel = document.createElement("div");
         dayLabel.className = "day-label";
-        dayLabel.textContent = currentDate;
+        dayLabel.textContent = cellDay;
         cell.appendChild(dayLabel);
 
         const plusBtn = document.createElement("button");
@@ -591,11 +601,10 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
         const itemsContainer = document.createElement("div");
         itemsContainer.className = "cell-items";
         cell.appendChild(itemsContainer);
-        
+
         const itemsForDay = calendarItems.filter(item => item.date === dateStr);
 
         itemsForDay.forEach(item => {
-         
           if (item.category === "HawkMastery") return;
 
           const itemBtn = document.createElement("button");
@@ -622,75 +631,71 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
           });
           itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
 
-          cell.appendChild(itemBtn);
+          itemsContainer.appendChild(itemBtn);
         });
-
-        currentDate++;
       }
 
       row.appendChild(cell);
     }
 
+    // HawkMastery bar for this week row
     if (rowMonday && rowFriday) {
       const weekStart = new Date(rowMonday);
       const weekEnd = new Date(rowFriday);
-const hawkItemsForWeek = calendarItems.filter(item => {
-    if (item.category !== "HawkMastery") return false;
-    const start = new Date(item.rangeStart || item.date);
-    const end = new Date(item.rangeEnd || item.date);
-    return end >= weekStart && start <= weekEnd;
-  });
-     hawkItemsForWeek.forEach(item => {
-  // true event dates (strings)
-  const eventStart = item.rangeStart || item.date;
-  const eventEnd = item.rangeEnd || item.date;
 
-  // clamp event to this row's Monday–Friday
-  const clampedStartDate = clampDateToWeekdayRange(eventStart, weekStart, weekEnd);
-  const clampedEndDate = clampDateToWeekdayRange(eventEnd, weekStart, weekEnd);
+      const hawkItemsForWeek = calendarItems.filter(item => {
+        if (item.category !== "HawkMastery") return false;
+        const start = new Date(item.rangeStart || item.date);
+        const end = new Date(item.rangeEnd || item.date);
+        return end >= weekStart && start <= weekEnd;
+      });
 
-  // ensure we are working with Date objects
-  const startDate = new Date(clampedStartDate);
-  const endDate = new Date(clampedEndDate);
+      hawkItemsForWeek.forEach(item => {
+        const eventStart = item.rangeStart || item.date;
+        const eventEnd = item.rangeEnd || item.date;
 
-  // getDay(): Monday=1 ... Friday=5
-  const rawStartIndex = startDate.getDay() - 1; // 0..4
-  const rawEndIndex = endDate.getDay() - 1;     // 0..4
+        const clampedStartDate = clampDateToWeekdayRange(eventStart, weekStart, weekEnd);
+        const clampedEndDate = clampDateToWeekdayRange(eventEnd, weekStart, weekEnd);
 
-  // clamp into [0,4] in case of any edges
-  const startCol = Math.max(0, Math.min(4, rawStartIndex));
-  const endCol = Math.max(0, Math.min(4, rawEndIndex));
+        const startDate = new Date(clampedStartDate);
+        const endDate = new Date(clampedEndDate);
 
-  const spanColumns = Math.max(1, endCol - startCol + 1);
+        const rawStartIndex = startDate.getDay() - 1; // Mon=1 -> 0
+        const rawEndIndex = endDate.getDay() - 1;     // Fri=5 -> 4
 
-  const itemBtn = document.createElement("button");
-  itemBtn.type = "button";
-  itemBtn.className = "calendarItemBtn hawk-span";
-  itemBtn.textContent = item.title || "HawkMastery";
+        const startCol = Math.max(0, Math.min(4, rawStartIndex));
+        const endCol = Math.max(0, Math.min(4, rawEndIndex));
 
-  const color = CATEGORY_COLORS[item.category];
-  if (color) {
-    itemBtn.style.backgroundColor = color;
-    itemBtn.style.borderColor = color;
-    itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
-  }
+        const spanColumns = Math.max(1, endCol - startCol + 1);
 
-  itemBtn.addEventListener("click", () => {
-    document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
-    itemBtn.classList.add("selected");
-    showDetails(item.id);
-  });
-  itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+        const itemBtn = document.createElement("button");
+        itemBtn.type = "button";
+        itemBtn.className = "calendarItemBtn hawk-span";
+        itemBtn.textContent = item.title || "HawkMastery";
 
-  const totalCols = 5;  // Monday–Friday
-  const leftPercent = (startCol / totalCols) * 100;
-  const widthPercent = (spanColumns / totalCols) * 100;
+        const color = CATEGORY_COLORS[item.category];
+        if (color) {
+          itemBtn.style.backgroundColor = color;
+          itemBtn.style.borderColor = color;
+          itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
+        }
 
-  itemBtn.style.left = leftPercent + "%";
-  itemBtn.style.width = widthPercent + "%";
+        itemBtn.addEventListener("click", () => {
+          document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
+          itemBtn.classList.add("selected");
+          showDetails(item.id);
+        });
+        itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
 
-  row.appendChild(itemBtn);
-});
+        const totalCols = 5;
+        const leftPercent = (startCol / totalCols) * 100;
+        const widthPercent = (spanColumns / totalCols) * 100;
+
+        itemBtn.style.left = leftPercent + "%";
+        itemBtn.style.width = widthPercent + "%";
+
+        row.appendChild(itemBtn);
+      });
     }
 
     calendarGrid.appendChild(row);
