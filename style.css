@@ -26,7 +26,7 @@ body {
 }
 .calendarItemBtn.hawk-span {
   position: absolute;
-  top: 22px;             
+  top: 25px;             
   height: 1.0rem;
   z-index: 2;             
   border-radius: 4px;
