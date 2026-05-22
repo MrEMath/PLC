@@ -249,17 +249,13 @@ function renderCategoryFields(category) {
       '<div class="field-group"><b>Title:</b><input type="text" id="fieldTitle"></div>' +
       '<div class="resource-section"><div class="resource-header"><span class="resource-label">Links:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'links\')">+</button></div><div id="linksPreview" class="resource-preview"></div></div>';
     refreshResourcePreviews();
-  } else if (category === 'HawkMastery') {
-    container.innerHTML = `
-      <label>
-        Title:
-        <input type="text" id="hawkTitle" value="${existingData.title || ''}">
-      </label>
-      <label>
-        Links:
-        <input type="text" id="hawkLinks" value="${existingData.links || ''}">
-      </label>
-    `;
+  } else if (category === "HawkMastery") {
+    categoryFields.innerHTML =
+      '<p><strong>Title:</strong><input type="text" id="fieldTitle"></p>' +
+      '<p> Links: <button type="button" onclick="openResourcePopout(\'links\')">+</button></p>' +
+      '<div id="linksPreview"></div>';
+    refreshResourcePreviews();
+  }
   } else {
     categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
@@ -379,6 +375,10 @@ async function showDetails(itemId) {
     if (allRows.links) allRows.links.style.display = "block";
     detailTitle.textContent = item.title || "";
   }
+  } else if (cat === "HawkMastery") {
+    if (allRows.title) allRows.title.style.display = "block";
+    if (allRows.links) allRows.links.style.display = "block";
+}
   async function renderFileLinks(container, items) {
     if (!container || !Array.isArray(items) || !items.length) return;
     for (const fileObj of items) {
