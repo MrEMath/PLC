@@ -259,13 +259,12 @@ function openEditItemPopout(itemId) {
     powerpoint: Array.isArray(item.powerpoint) ? [...item.powerpoint] : [],
     notes: Array.isArray(item.notes) ? [...item.notes] : [],
     task: Array.isArray(item.task) ? [...item.task] : [],
-    videos: Array.isArray(item.videos) ? [...item.videos] : [], links: Array.isArray(item.links) ? [...item.links] : [] ? [...item.videos] : [], links: Array.isArray(item.links) ? [...item.links] : [] ? [...item.videos] : []
-  };
+        videos: Array.isArray(item.videos) ? [...item.videos] : [],
+    links: Array.isArray(item.links) ? [...item.links] : []
+};
   itemDateDisplay.textContent = "Date: " + item.date;
   itemCategory.value = item.category || "Topic";
-  renderCategoryFields(item.category || "Topic");
-  if (itemDeleteBtn) itemDeleteBtn.style.display = "inline-block";
-  itemModal.classList.remove("hidden");
+      itemModal.classList.remove("hidden");
   const titleEl = document.getElementById("fieldTitle");
   const euEl = document.getElementById("fieldEU");
   const objectivesEl = document.getElementById("fieldObjectives");
