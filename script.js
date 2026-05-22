@@ -502,7 +502,7 @@ async function showDetails(itemId) {
     await renderFileLinks(detailNotes, item.notes);
     await renderFileLinks(detailTasks, item.task);
     await renderFileLinks(detailVideos, item.videos);
-  } else if (cat === "Quiz" || cat === "CPA" || cat === "Benchmark" || cat === "Diagnostic") {
+  } else if (cat === "Quiz" || cat === "CPA" || cat === "Benchmark" || cat === "Diagnostic" || cat === "HawkMastery") {
     const detailLinksEl = document.getElementById("detailLinks");
     await renderFileLinks(detailLinksEl, item.links);
   }
