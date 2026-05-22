@@ -8,6 +8,7 @@ body {
 }
 .calendar-row {
   display: flex;
+  position: relative;
 }
 
 .calendar-cell {
@@ -101,14 +102,15 @@ body {
 }
 
 .calendar-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  flex: 1;                     /* week rows stretch to fill height */
+  display: flex;
+  position: relative;
+  flex: 1;
 }
 
 /* Header row: shorter and not stretched by flex */
 .header-row {
   flex: 0 0 auto;
+  position: static;
 }
 
 /* Header cells: minimal padding so row stays short */
