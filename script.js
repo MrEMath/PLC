@@ -35,7 +35,7 @@ const CATEGORY_COLORS = {
   "No Students": "#90BE6D",
   "CPA": "#F3722C",
   "Benchmark": "#F94144",
-  "Diagnostic": "#F9C74F"
+  "Diagnostic": "#F9C74F",
   "HawkMastery": "#242424"
 };
 
@@ -46,7 +46,7 @@ const CATEGORY_TEXT_COLORS = {
   "No Students": "#000000",
   "CPA": "#ffffff",
   "Benchmark": "#ffffff",
-  "Diagnostic": "#000000"
+  "Diagnostic": "#000000",
   "HawkMastery": "#000000"
 };
 
@@ -256,7 +256,7 @@ function renderCategoryFields(category) {
       '<div id="linksPreview"></div>';
     refreshResourcePreviews();
   }
-  } else {
+  else {
     categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
 }
