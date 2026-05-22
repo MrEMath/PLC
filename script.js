@@ -230,11 +230,11 @@ function renderCategoryFields(category) {
       '<div class="field-group"><b>Title:</b><input type="text" id="fieldTitle"></div>' +
       '<div class="field-group"><b>Essential Understanding:</b><textarea id="fieldEU" rows="3"></textarea></div>' +
       '<div class="field-group"><b>Objectives (one per line):</b><textarea id="fieldObjectives" rows="3"></textarea></div>' +
-      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Quiz:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'quiz\')">+</button></div><div id="quizPreview" class="resource-preview"></div></div>' +
-      '<div class="resource-section"><div class="resource-header"><span class="resource-label">PowerPoint:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'powerpoint\')">+</button></div><div id="powerpointPreview" class="resource-preview"></div></div>' +
-      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Notes:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'notes\')">+</button></div><div id="notesPreview" class="resource-preview"></div></div>' +
-      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Task:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'task\')">+</button></div><div id="taskPreview" class="resource-preview"></div></div>' +
-      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Videos:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'videos\')">+</button></div><div id="videosPreview" class="resource-preview"></div></div>';
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Quiz:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\\'quiz\\')">+</button></div><div id="quizPreview" class="resource-preview"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">PowerPoint:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\\'powerpoint\\')">+</button></div><div id="powerpointPreview" class="resource-preview"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Notes:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\\'notes\\')">+</button></div><div id="notesPreview" class="resource-preview"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Task:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\\'task\\')">+</button></div><div id="taskPreview" class="resource-preview"></div></div>' +
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Videos:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\\'videos\\')">+</button></div><div id="videosPreview" class="resource-preview"></div></div>';
     refreshResourcePreviews();
   } else if (category === "No Students" || category === "No School") {
     categoryFields.innerHTML =
@@ -242,28 +242,27 @@ function renderCategoryFields(category) {
   } else if (category === "Quiz") {
     categoryFields.innerHTML =
       '<div class="field-group"><b>Topic:</b><input type="text" id="fieldTitle"></div>' +
-      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Links:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'links\')">+</button></div><div id="linksPreview" class="resource-preview"></div></div>';
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Links:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\\'links\\')">+</button></div><div id="linksPreview" class="resource-preview"></div></div>';
     refreshResourcePreviews();
   } else if (category === "CPA" || category === "Benchmark" || category === "Diagnostic") {
     categoryFields.innerHTML =
       '<div class="field-group"><b>Title:</b><input type="text" id="fieldTitle"></div>' +
-      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Links:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\'links\')">+</button></div><div id="linksPreview" class="resource-preview"></div></div>';
+      '<div class="resource-section"><div class="resource-header"><span class="resource-label">Links:</span><button type="button" class="add-resource-btn" onclick="openResourcePopout(\\'links\\')">+</button></div><div id="linksPreview" class="resource-preview"></div></div>';
     refreshResourcePreviews();
   } else if (category === "HawkMastery") {
     categoryFields.innerHTML =
       '<p><strong>Title:</strong><input type="text" id="fieldTitle"></p>' +
-      '<p> Links: <button type="button" onclick="openResourcePopout(\'links\')">+</button></p>' +
+      '<p> Links: <button type="button" onclick="openResourcePopout(\\'links\\')">+</button></p>' +
       '<div id="linksPreview"></div>';
     refreshResourcePreviews();
-  }
-  else {
+  } else {
     categoryFields.innerHTML = '<p>Category layout not implemented yet.</p>';
   }
 }
 if (itemCategory) {
   itemCategory.addEventListener("change", (e) => {
     const cat = e.target.value;
-    renderCategoryFields(cat, {}); // you can plug in existingData when editing
+    renderCategoryFields(cat);
   });
 }
 function openItemPopout(dateStr) {
@@ -567,7 +566,6 @@ if (itemDeleteBtn) {
 }
 
 itemCancelBtn.addEventListener("click", closeItemPopout);
-itemCategory.addEventListener("change", () => renderCategoryFields(itemCategory.value));
 monthSelect.addEventListener("change", renderCalendar);
 yearSelect.addEventListener("change", renderCalendar);
 
