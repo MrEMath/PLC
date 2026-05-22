@@ -407,8 +407,10 @@ async function showDetails(itemId) {
     topic:      document.getElementById("detailTopicRow")
   };
   Object.values(allRows).forEach(r => { if (r) r.style.display = "none"; });
-  if (cat === "Topic") {
-    ["title","eu","objectives","quiz","ppt","notes","tasks","videos"].forEach(k => { if (allRows[k]) allRows[k].style.display = "block"; });
+    if (cat === "Topic") {
+    ["title","eu","objectives","quiz","ppt","notes","tasks","videos"].forEach(k => {
+      if (allRows[k]) allRows[k].style.display = "block";
+    });
     detailTitle.textContent = item.title || "";
     const detailEU = document.getElementById("detailEU");
     if (detailEU) detailEU.textContent = item.essentialUnderstanding || "";
@@ -432,11 +434,11 @@ async function showDetails(itemId) {
     if (allRows.title) allRows.title.style.display = "block";
     if (allRows.links) allRows.links.style.display = "block";
     detailTitle.textContent = item.title || "";
-  }
   } else if (cat === "HawkMastery") {
     if (allRows.title) allRows.title.style.display = "block";
     if (allRows.links) allRows.links.style.display = "block";
-}
+    detailTitle.textContent = item.title || "";
+  }
   async function renderFileLinks(container, items) {
     if (!container || !Array.isArray(items) || !items.length) return;
     for (const fileObj of items) {
