@@ -10,14 +10,23 @@ body {
   display: flex;
   position: relative;
 }
-
+.day-label {
+  font-weight: bold;
+  font-size: 0.75rem;
+}
+.cell-items {
+  margin-top: 22px;  
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 .calendar-cell {
   flex: 1 1 0;
   position: relative;
 }
 .calendarItemBtn.hawk-span {
   position: absolute;
-  top: 4px;             
+  top: 18px;             
   height: 1.6rem;
   z-index: 2;             
   border-radius: 4px;
@@ -126,13 +135,13 @@ body {
 /* Regular cells */
 .calendar-cell {
   border: 1px solid #eee;
-  padding: 22px 4px 4px;
+  padding: 4px
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 4px;
   font-size: 0.8rem;
-  position: relative;      /* NEW: anchor for .addItemBtn */
+  position: relative;      
 }.calendar-cell button {
   font-size: 0.7rem;
 }
