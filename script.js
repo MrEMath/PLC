@@ -453,12 +453,11 @@ async function showDetails(itemId) {
     if (allRows.reason) allRows.reason.style.display = "block";
     const detailReason = document.getElementById("detailReason");
     if (detailReason) detailReason.textContent = item.reason || "";
-  } else if (cat === "Quiz") {
-    if (allRows.topic) allRows.topic.style.display = "block";
-    if (allRows.links) allRows.links.style.display = "block";
-    const detailTopic = document.getElementById("detailTopic");
-    if (detailTopic) detailTopic.textContent = item.title || "";
-  } else if (cat === "CPA" || cat === "Benchmark" || cat === "Diagnostic") {
+ } else if (cat === "Quiz") {
+  if (allRows.title) allRows.title.style.display = "block";
+  detailTitle.textContent = item.title || "";
+  if (allRows.links) allRows.links.style.display = "block";
+} else if (cat === "CPA" || cat === "Benchmark" || cat === "Diagnostic") {
     if (allRows.title) allRows.title.style.display = "block";
     if (allRows.links) allRows.links.style.display = "block";
     detailTitle.textContent = item.title || "";
