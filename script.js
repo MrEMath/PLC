@@ -22,6 +22,7 @@ const categoryFields = document.getElementById("categoryFields");
 const itemSaveBtn = document.getElementById("itemSaveBtn");
 const itemCancelBtn = document.getElementById("itemCancelBtn");
 const itemDeleteBtn = document.getElementById("itemDeleteBtn");
+const itemDuplicateBtn = document.getElementById("itemDuplicateBtn");
 const resourceModal = document.getElementById("resourceModal");
 const resourceSaveBtn = document.getElementById("resourceSaveBtn");
 const resourceCancelBtn = document.getElementById("resourceCancelBtn");
@@ -783,7 +784,44 @@ if (itemDeleteBtn) {
     } catch (error) { console.error("Error deleting item:", error); alert("Failed to delete event from Supabase."); }
   });
 }
+if (itemDuplicateBtn) {
+  itemDuplicateBtn.addEventListener("click", async () => {
+    if (!editingItemId) return;
 
+    const original = calendarItems.find(it => it.id === editingItemId);
+    if (!original) return;
+
+    // Compute next day from original.date (YYYY-MM-DD)
+    const baseDate = new Date(original.date);
+    baseDate.setDate(baseDate.getDate() + 1);
+    const yyyy = baseDate.getFullYear();
+    const mm = String(baseDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(baseDate.getDate()).padStart(2, "0");
+    const nextDateStr = `${yyyy}-${mm}-${dd}`;
+
+    // Create new item with new id and next day's date
+    const newItem = {
+      ...original,
+      id: crypto.randomUUID(),
+      date: nextDateStr,
+      // also shift HawkMastery range if present
+      rangeStart: original.rangeStart || original.date,
+      rangeEnd: original.rangeEnd || original.date
+    };
+
+    // Push into local array
+    calendarItems.push(newItem);
+
+    try {
+      await saveCalendarItem(newItem);
+      closeItemPopout();   // close modal
+      renderCalendar();    // refresh calendar
+    } catch (err) {
+      console.error("Error duplicating item:", err);
+      alert("Failed to duplicate item.");
+    }
+  });
+}
 itemCancelBtn.addEventListener("click", closeItemPopout);
 monthSelect.addEventListener("change", renderCalendar);
 yearSelect.addEventListener("change", renderCalendar);
