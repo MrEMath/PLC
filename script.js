@@ -558,7 +558,6 @@ document.addEventListener("change", (e) => {
 const sfn = document.getElementById("selectedFileName");
     if (sfn) sfn.textContent = e.target.files.length ? e.target.files[0].name : "";
     }
-}
 });
 
 document.getElementById("attachmentSaveBtn").addEventListener("click", () => {
