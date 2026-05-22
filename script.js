@@ -614,8 +614,9 @@ function renderCalendar() {
           itemBtn.draggable = true;
           itemBtn.addEventListener("dragstart", (e) => { e.dataTransfer.setData("itemId", item.id); });
 
-          itemBtn.textContent = item.category === "No Students"
-          ? (item.reason || "No Students")   
+          itemBtn.textContent =
+          (item.category === "No Students" || item.category === "No School")
+          ? (item.reason || item.category || "Item")
           : (item.title || item.category || "Item");
 
           const color = CATEGORY_COLORS[item.category];
