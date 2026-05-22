@@ -17,8 +17,8 @@ body {
 }
 .calendarItemBtn.hawk-span {
   position: absolute;
-  top: 1.8rem;             
-  height: 1.5rem;
+  top: 4px;             
+  height: 1.6rem;
   z-index: 2;             
   border-radius: 4px;
   display: flex;
@@ -126,7 +126,7 @@ body {
 /* Regular cells */
 .calendar-cell {
   border: 1px solid #eee;
-  padding: 4px;
+  padding: 22px 4px 4px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
