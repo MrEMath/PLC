@@ -15,13 +15,9 @@ body {
   position: relative;
 }
 
-.calendarItemBtn.hawk-span {
-  position: absolute;
-  left: 0;
-  top: 1.8rem;
-  height: 1.8rem;
-  width: calc(var(--hawk-span-days, 1) * 100%);
-  z-index: 1;
+.calendarItemBtn.hawk-multi {
+  border-radius: 4px;
+  font-weight: 600;
 }
 .calendar-header {
   display: flex;
