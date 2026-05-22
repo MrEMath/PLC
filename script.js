@@ -633,52 +633,56 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
       const weekStart = new Date(rowMonday);
       const weekEnd = new Date(rowFriday);
 
-      const hawkItemsForWeek = calendarItems.filter(item => {
-        if (item.category !== "HawkMastery") return false;
-        const start = new Date(item.rangeStart || item.date);
-        const end = new Date(item.rangeEnd || item.date);
-        return end >= weekStart && start <= weekEnd;
-      });
+      const hawkItemsForWeek.forEach(item => {
 
-      hawkItemsForWeek.forEach(item => {
-        const eventStart = new Date(item.rangeStart || item.date);
-        const eventEnd = new Date(item.rangeEnd || item.date);
-        
-        const clampedStart = clampDateToWeekdayRange(eventStart.toISOString().slice(0,10), weekStart, weekEnd);
-        const clampedEnd = clampDateToWeekdayRange(eventEnd.toISOString().slice(0,10), weekStart, weekEnd);
+  const eventStart = item.rangeStart || item.date;
+  const eventEnd = item.rangeEnd || item.date;
 
-        const startDayIndex = clampedStart.getDay() - 1; 
-        const endDayIndex = clampedEnd.getDay() - 1;     
+  
+  const clampedStartDate = clampDateToWeekdayRange(eventStart, weekStart, weekEnd);
+  const clampedEndDate = clampDateToWeekdayRange(eventEnd, weekStart, weekEnd);
 
-        const spanColumns = Math.max(1, endDayIndex - startDayIndex + 1);
 
-        const itemBtn = document.createElement("button");
-        itemBtn.type = "button";
-        itemBtn.className = "calendarItemBtn hawk-span";
-        itemBtn.textContent = item.title || "HawkMastery";
+  const startDate = new Date(clampedStartDate);
+  const endDate = new Date(clampedEndDate);
 
-        const color = CATEGORY_COLORS[item.category];
-        if (color) {
-          itemBtn.style.backgroundColor = color;
-          itemBtn.style.borderColor = color;
-          itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
-        }
+ 
+  const rawStartIndex = startDate.getDay() - 1; 
+  const rawEndIndex = endDate.getDay() - 1;     
 
-        itemBtn.addEventListener("click", () => {
-          document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
-          itemBtn.classList.add("selected");
-          showDetails(item.id);
-        });
-        itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
-        
-        const leftPercent = (startDayIndex / 5) * 100;
-        const widthPercent = (spanColumns / 5) * 100;
+  const startCol = Math.max(0, Math.min(4, rawStartIndex));
+  const endCol = Math.max(0, Math.min(4, rawEndIndex));
 
-        itemBtn.style.left = leftPercent + "%";
-        itemBtn.style.width = widthPercent + "%";
+  const spanColumns = Math.max(1, endCol - startCol + 1);
 
-        row.appendChild(itemBtn);
-      });
+  const itemBtn = document.createElement("button");
+  itemBtn.type = "button";
+  itemBtn.className = "calendarItemBtn hawk-span";
+  itemBtn.textContent = item.title || "HawkMastery";
+
+  const color = CATEGORY_COLORS[item.category];
+  if (color) {
+    itemBtn.style.backgroundColor = color;
+    itemBtn.style.borderColor = color;
+    itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
+  }
+
+  itemBtn.addEventListener("click", () => {
+    document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
+    itemBtn.classList.add("selected");
+    showDetails(item.id);
+  });
+  itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+
+  const totalCols = 5; 
+  const leftPercent = (startCol / totalCols) * 100;
+  const widthPercent = (spanColumns / totalCols) * 100;
+
+  itemBtn.style.left = leftPercent + "%";
+  itemBtn.style.width = widthPercent + "%";
+
+  row.appendChild(itemBtn);
+});
     }
 
     calendarGrid.appendChild(row);
