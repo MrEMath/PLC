@@ -577,7 +577,6 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
           try { await saveCalendarItem(draggedItem); renderCalendar(); }
           catch (err) { console.error("Drop save error:", err); alert("Failed to move item: " + err.message); }
         });
-
         const dayLabel = document.createElement("div");
         dayLabel.className = "day-label";
         dayLabel.textContent = currentDate;
@@ -590,6 +589,10 @@ function clampDateToWeekdayRange(dateStr, weekStart, weekEnd) {
         plusBtn.addEventListener("click", () => openItemPopout(dateStr));
         cell.appendChild(plusBtn);
 
+        const itemsContainer = document.createElement("div");
+        itemsContainer.className = "cell-items";
+        cell.appendChild(itemsContainer);
+        
         const itemsForDay = calendarItems.filter(item => item.date === dateStr);
 
         itemsForDay.forEach(item => {
