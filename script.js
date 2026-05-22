@@ -305,38 +305,49 @@ async function showDetails(itemId) {
   const item = calendarItems.find(it => it.id === itemId);
   if (!item) return;
   clearDetails();
-  const isNoStudents = item.category === "No Students";
+  const cat = item.category;
+  const allRows = {
+    title:      document.getElementById("detailTitleRow"),
+    eu:         document.getElementById("detailEURow"),
+    objectives: document.getElementById("detailObjectivesRow"),
+    quiz:       document.getElementById("detailQuizRow"),
+    ppt:        document.getElementById("detailPptRow"),
+    notes:      document.getElementById("detailNotesRow"),
+    tasks:      document.getElementById("detailTasksRow"),
+    videos:     document.getElementById("detailVideosRow"),
+    reason:     document.getElementById("detailReasonRow"),
+    links:      document.getElementById("detailLinksRow"),
+    topic:      document.getElementById("detailTopicRow")
+  };
+  // Hide all rows first
+  Object.values(allRows).forEach(r => { if (r) r.style.display = "none"; });
 
-const topicRow = document.getElementById("detailTitleRow");
-const euRow = document.getElementById("detailEURow");
-const objectivesRow = document.getElementById("detailObjectivesRow");
-const quizRow = document.getElementById("detailQuizRow");
-const pptRow = document.getElementById("detailPptRow");
-const notesRow = document.getElementById("detailNotesRow");
-const tasksRow = document.getElementById("detailTasksRow");
-const videosRow = document.getElementById("detailVideosRow");
-
-const topicRows = [topicRow, euRow, objectivesRow, quizRow, pptRow, notesRow, tasksRow, videosRow];
-topicRows.forEach(row => { if (row) row.style.display = isNoStudents ? "none" : "block"; });
-
-detailTitle.textContent = item.title || "";
-detailEU.textContent = item.essentialUnderstanding || "";
-  const detailReasonRow = document.getElementById("detailReasonRow");
-  const detailReason = document.getElementById("detailReason");
-  if (isNoStudents) {
-    if (detailReasonRow) detailReasonRow.style.display = "block";
+  if (cat === "Topic") {
+    ["title","eu","objectives","quiz","ppt","notes","tasks","videos"].forEach(k => { if (allRows[k]) allRows[k].style.display = "block"; });
+    detailTitle.textContent = item.title || "";
+    detailEU.textContent = item.essentialUnderstanding || "";
+    if (item.objectives) {
+      item.objectives.split("\n").filter(Boolean).forEach(obj => {
+        const li = document.createElement("li");
+        li.textContent = obj;
+        detailObjectives.appendChild(li);
+      });
+    }
+  } else if (cat === "No Students" || cat === "No School") {
+    if (allRows.reason) allRows.reason.style.display = "block";
+    const detailReason = document.getElementById("detailReason");
     if (detailReason) detailReason.textContent = item.reason || "";
-  } else {
-    if (detailReasonRow) detailReasonRow.style.display = "none";
+  } else if (cat === "Quiz") {
+    if (allRows.topic) allRows.topic.style.display = "block";
+    if (allRows.links) allRows.links.style.display = "block";
+    const detailTopic = document.getElementById("detailTopic");
+    if (detailTopic) detailTopic.textContent = item.title || "";
+  } else if (cat === "CPA" || cat === "Benchmark" || cat === "Diagnostic") {
+    if (allRows.title) allRows.title.style.display = "block";
+    if (allRows.links) allRows.links.style.display = "block";
+    detailTitle.textContent = item.title || "";
   }
-  if (!isNoStudents && item.objectives) {
-    item.objectives.split("\n").filter(Boolean).forEach(obj => {
-      const li = document.createElement("li");
-      li.textContent = obj;
-      detailObjectives.appendChild(li);
-    });
-  }
-  async function renderFileLinks(container, items) {
+async function renderFileLinks(container, items) {
     if (!container || !Array.isArray(items) || !items.length) return;
     for (const fileObj of items) {
       const wrapper = document.createElement("div");
@@ -365,17 +376,18 @@ detailEU.textContent = item.essentialUnderstanding || "";
       container.appendChild(wrapper);
     }
   }
-  if (!isNoStudents) {
+  if (cat === "Topic") {
     await renderFileLinks(detailQuiz, item.quiz);
     await renderFileLinks(detailPpt, item.powerpoint);
     await renderFileLinks(detailNotes, item.notes);
     await renderFileLinks(detailTasks, item.task);
     await renderFileLinks(detailVideos, item.videos);
+  } else if (cat === "Quiz" || cat === "CPA" || cat === "Benchmark" || cat === "Diagnostic") {
+    const detailLinksEl = document.getElementById("detailLinks");
+    await renderFileLinks(detailLinksEl, item.links);
   }
 }
-
-function renderCalendar() {
-  const month = parseInt(monthSelect.value, 10);
+const month = parseInt(monthSelect.value, 10);
   const year = parseInt(yearSelect.value, 10);
   calendarGrid.innerHTML = "";
   const headerRow = document.createElement("div");
