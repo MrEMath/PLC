@@ -110,16 +110,29 @@ async function saveCalendarItem(item) {
     task: item.task || null,
     videos: item.videos || null,
     links: item.links || null,
-    reason: item.reason || ""
+    reason: item.reason || "",
+    range_start: item.rangeStart || item.date,
+    range_end: item.rangeEnd || item.date
   };
-  const { data, error } = await supabaseClient.from("calendar_items").upsert(payload).select();
+  const { data, error } = await supabaseClient
+    .from("calendar_items")
+    .upsert(payload)
+    .select();
   if (error) throw error;
   return data;
 }
 
 async function loadCalendarItems() {
-  const { data, error } = await supabaseClient.from("calendar_items").select("*").order("date", { ascending: true });
-  if (error) { console.error("Error loading:", error); return; }
+  const { data, error } = await supabaseClient
+    .from("calendar_items")
+    .select("*")
+    .order("date", { ascending: true });
+
+  if (error) {
+    console.error("Error loading:", error);
+    return;
+  }
+
   calendarItems = (data || []).map(row => ({
     id: row.id,
     date: row.date,
@@ -133,8 +146,11 @@ async function loadCalendarItems() {
     task: Array.isArray(row.task) ? row.task : [],
     videos: Array.isArray(row.videos) ? row.videos : [],
     links: Array.isArray(row.links) ? row.links : [],
-    reason: row.reason || ""
+    reason: row.reason || "",
+    rangeStart: row.range_start || row.date,
+    rangeEnd: row.range_end || row.date
   }));
+
   renderCalendar();
 }
 
@@ -308,13 +324,19 @@ function renderCategoryFields(category) {
     `;
     refreshResourcePreviews();
   } else if (category === "HawkMastery") {
-    categoryFields.innerHTML = `
+  categoryFields.innerHTML = `
       <p><strong>Title:</strong><input type="text" id="fieldTitle"></p>
+      <p>
+        <strong>From:</strong>
+        <input type="date" id="fieldRangeStart">
+        <strong>To:</strong>
+        <input type="date" id="fieldRangeEnd">
+      </p>
       <p>Links: <button type="button" onclick="openResourcePopout('links')">+</button></p>
       <div id="linksPreview"></div>
     `;
-    refreshResourcePreviews();
-  } else {
+  refreshResourcePreviews();
+} else {
     categoryFields.innerHTML = `<p>Category layout not implemented yet.</p>`;
   }
 }
@@ -353,16 +375,22 @@ function openEditItemPopout(itemId) {
   renderCategoryFields(item.category || "Topic");
   if (itemDeleteBtn) itemDeleteBtn.style.display = "inline-block";
   itemModal.classList.remove("hidden");
-  const titleEl = document.getElementById("fieldTitle");
+    const titleEl = document.getElementById("fieldTitle");
   const euEl = document.getElementById("fieldEU");
   const objectivesEl = document.getElementById("fieldObjectives");
-    const reasonEl = document.getElementById("fieldReason");
-    if (titleEl) titleEl.value = item.title || "";
-    if (euEl) euEl.value = item.essentialUnderstanding || "";
-    if (objectivesEl) objectivesEl.value = item.objectives || "";
-    if (reasonEl) reasonEl.value = item.reason || "";
-    refreshResourcePreviews();
-  }
+  const reasonEl = document.getElementById("fieldReason");
+  const rangeStartEl = document.getElementById("fieldRangeStart");
+  const rangeEndEl = document.getElementById("fieldRangeEnd");
+
+  if (titleEl) titleEl.value = item.title || "";
+  if (euEl) euEl.value = item.essentialUnderstanding || "";
+  if (objectivesEl) objectivesEl.value = item.objectives || "";
+  if (reasonEl) reasonEl.value = item.reason || "";
+  if (rangeStartEl) rangeStartEl.value = item.rangeStart || item.date;
+  if (rangeEndEl) rangeEndEl.value = item.rangeEnd || item.date;
+
+  refreshResourcePreviews();
+}
 
   function closeItemPopout() {
     itemModal.classList.add("hidden");
@@ -479,7 +507,12 @@ async function showDetails(itemId) {
     await renderFileLinks(detailLinksEl, item.links);
   }
 }
-
+function isDateInRange(dateStr, startStr, endStr) {
+  const d = new Date(dateStr);
+  const s = new Date(startStr);
+  const e = new Date(endStr);
+  return d >= s && d <= e;
+}
 function renderCalendar() {
   const month = parseInt(monthSelect.value, 10);
   const year = parseInt(yearSelect.value, 10);
@@ -531,23 +564,71 @@ function renderCalendar() {
         plusBtn.addEventListener("click", () => openItemPopout(dateStr));
         cell.appendChild(plusBtn);
         const itemsForDay = calendarItems.filter(item => item.date === dateStr);
-        itemsForDay.forEach(item => {
-          const itemBtn = document.createElement("button");
-          itemBtn.type = "button";
-          itemBtn.className = "calendarItemBtn";
-          itemBtn.draggable = true;
-          itemBtn.addEventListener("dragstart", (e) => { e.dataTransfer.setData("itemId", item.id); });
-          itemBtn.textContent = item.category === "No Students" ? (item.reason || "No Students") : (item.title || item.category || "Item");
-          const color = CATEGORY_COLORS[item.category];
-          if (color) { itemBtn.style.backgroundColor = color; itemBtn.style.borderColor = color; itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000"; }
-          itemBtn.addEventListener("click", () => {
-            document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
-            itemBtn.classList.add("selected");
-            showDetails(item.id);
-          });
-          itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
-          cell.appendChild(itemBtn);
-        });
+
+itemsForDay
+  .filter(item => item.category !== "HawkMastery")
+  .forEach(item => {
+    const itemBtn = document.createElement("button");
+    itemBtn.type = "button";
+    itemBtn.className = "calendarItemBtn";
+    itemBtn.draggable = true;
+    itemBtn.addEventListener("dragstart", (e) => { e.dataTransfer.setData("itemId", item.id); });
+    itemBtn.textContent = item.category === "No Students"
+      ? (item.reason || "No Students")
+      : (item.title || item.category || "Item");
+    const color = CATEGORY_COLORS[item.category];
+    if (color) {
+      itemBtn.style.backgroundColor = color;
+      itemBtn.style.borderColor = color;
+      itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
+    }
+    itemBtn.addEventListener("click", () => {
+      document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
+      itemBtn.classList.add("selected");
+      showDetails(item.id);
+    });
+    itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+    cell.appendChild(itemBtn);
+  });
+
+const hawkItems = calendarItems.filter(item =>
+  item.category === "HawkMastery" &&
+  isDateInRange(dateStr, item.rangeStart || item.date, item.rangeEnd || item.date)
+);
+
+hawkItems.forEach(item => {
+  const start = item.rangeStart || item.date;
+  if (dateStr !== start) return;
+
+  const startDate = new Date(start);
+  const endDate = new Date(item.rangeEnd || item.date);
+  const spanDays = Math.max(1, (endDate - startDate) / (1000 * 60 * 60 * 24) + 1);
+
+  const itemBtn = document.createElement("button");
+  itemBtn.type = "button";
+  itemBtn.className = "calendarItemBtn hawk-span";
+  itemBtn.textContent = item.title || "HawkMastery";
+  itemBtn.draggable = true;
+  itemBtn.addEventListener("dragstart", (e) => { e.dataTransfer.setData("itemId", item.id); });
+
+  const color = CATEGORY_COLORS[item.category];
+  if (color) {
+    itemBtn.style.backgroundColor = color;
+    itemBtn.style.borderColor = color;
+    itemBtn.style.color = CATEGORY_TEXT_COLORS[item.category] || "#000";
+  }
+
+  itemBtn.addEventListener("click", () => {
+    document.querySelectorAll(".calendarItemBtn").forEach(btn => btn.classList.remove("selected"));
+    itemBtn.classList.add("selected");
+    showDetails(item.id);
+  });
+  itemBtn.addEventListener("dblclick", () => openEditItemPopout(item.id));
+
+  itemBtn.style.setProperty("--hawk-span-days", spanDays);
+
+  cell.appendChild(itemBtn);
+});
         currentDate++;
       }
       row.appendChild(cell);
@@ -562,16 +643,28 @@ itemSaveBtn.addEventListener("click", async () => {
   const essentialUnderstanding = document.getElementById("fieldEU") ? document.getElementById("fieldEU").value.trim() : "";
   const objectives = document.getElementById("fieldObjectives") ? document.getElementById("fieldObjectives").value.trim() : "";
   const reason = document.getElementById("fieldReason") ? document.getElementById("fieldReason").value.trim() : "";
+
+  const rangeStartEl = document.getElementById("fieldRangeStart");
+  const rangeEndEl = document.getElementById("fieldRangeEnd");
+  const rangeStart = rangeStartEl ? (rangeStartEl.value || currentEditingDate) : currentEditingDate;
+  const rangeEnd = rangeEndEl ? (rangeEndEl.value || currentEditingDate) : currentEditingDate;
+
   const item = {
     id: editingItemId || crypto.randomUUID(),
     date: currentEditingDate,
-    category, title, essentialUnderstanding, objectives, reason,
+    category,
+    title,
+    essentialUnderstanding,
+    objectives,
+    reason,
     quiz: pendingResources.quiz || [],
     powerpoint: pendingResources.powerpoint || [],
     notes: pendingResources.notes || [],
     task: pendingResources.task || [],
     videos: pendingResources.videos || [],
-    links: pendingResources.links || []
+    links: pendingResources.links || [],
+    rangeStart,
+    rangeEnd
   };
   const existingIndex = calendarItems.findIndex(x => x.id === item.id);
   if (existingIndex >= 0) { calendarItems[existingIndex] = item; } else { calendarItems.push(item); }
